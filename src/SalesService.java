@@ -79,4 +79,75 @@ public class SalesService {
             System.out.println("Error " + e.getMessage());
         }
     }
+    public static void findSaleById() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void deleteSale() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void filterSalesByDate() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void filterSalesByAgent() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void filterSalesByProperty() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void totalSalesAmount() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void countSales() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void sortSalesByAmount() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void sortSalesByDate() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
 }

@@ -97,4 +97,102 @@ public class PropertyService {
             System.out.println("Error " + e.getMessage());
         }
     }
+
+    public static void findPropertyById() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void updateProperty() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void deleteProperty() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void searchPropertyByCity() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void searchPropertyByLocality() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void filterByBedrooms() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void filterBySizeRange() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void filterByAvailability() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void countProperties() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void sortPropertiesByPrice() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void sortPropertiesBySize() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+    public static void checkPropertyExists() {
+        try {
+            Connection conn = DBConnection.getConnection();
+        } catch (Exception e) {
+            System.out.println("Error " + e.getMessage());
+        }
+    }
+
+
 }

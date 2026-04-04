@@ -63,4 +63,76 @@ public class AgentService {
             System.out.println("Error " + e.getMessage());
         }
     }
+    public static void findAgentById(){
+        try{
+            Connection conn=DBConnection.getConnection();
+        }
+        catch (Exception e){
+            System.out.println("Error "+e.getMessage());
+        }
+    }
+    public static void updateAgent(){
+        try{
+            Connection conn=DBConnection.getConnection();
+        }
+        catch (Exception e){
+            System.out.println("Error "+e.getMessage());
+        }
+    }
+    public static void deleteAgent(){
+        try{
+            Connection conn=DBConnection.getConnection();
+        }
+        catch (Exception e){
+            System.out.println("Error "+e.getMessage());
+        }
+    }
+    public static void searchAgentByName(){
+        try{
+            Connection conn=DBConnection.getConnection();
+        }
+        catch (Exception e){
+            System.out.println("Error "+e.getMessage());
+        }
+    }
+    public static void filterAgentsByExperience(){
+        try{
+            Connection conn=DBConnection.getConnection();
+        }
+        catch (Exception e){
+            System.out.println("Error "+e.getMessage());
+        }
+    }
+    public static void filterAgentsByAgency(){
+        try{
+            Connection conn=DBConnection.getConnection();
+        }
+        catch (Exception e){
+            System.out.println("Error "+e.getMessage());
+        }
+    }
+    public static void countAgency(){
+        try{
+            Connection conn=DBConnection.getConnection();
+        }
+        catch (Exception e){
+            System.out.println("Error "+e.getMessage());
+        }
+    }
+    public static void sortAgentsByExperience(){
+        try{
+            Connection conn=DBConnection.getConnection();
+        }
+        catch (Exception e){
+            System.out.println("Error "+e.getMessage());
+        }
+    }
+    public static void checkAgentExists(){
+        try{
+            Connection conn=DBConnection.getConnection();
+        }
+        catch (Exception e){
+            System.out.println("Error "+e.getMessage());
+        }
+    }
 }

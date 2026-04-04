@@ -81,4 +81,128 @@ public class ClientService {
             System.out.println("Error " + e.getMessage());
         }
     }
+
+    public static void findClientById(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void updateClient(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void deleteClient(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void searchClientByName(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void countClients(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void sortClientsByName(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void sortClientsById(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void filterClientsByRole(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void removeClientRole(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void updateClientRole(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+    public static void checkClientExists(){
+        try{
+            Connection conn=DBConnection.getConnection();
+
+            //query
+        }
+        catch (Exception e){
+            System.out.println("Error"+e.getMessage());
+        }
+    }
+
+
+
 }
