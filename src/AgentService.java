@@ -7,12 +7,12 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int id = InputUtil.getIntegerInput("Enter Agent ID");
+            int id = InputUtil.getPositiveInt("Enter Agent ID");
             String name = InputUtil.getStringInput("Enter Name");
-            String phone = InputUtil.getStringInput("Enter Phone");
-            String email = InputUtil.getStringInput("Enter Email");
-            int exp = InputUtil.getIntegerInput("Enter Experience (years)");
-            int agencyId = InputUtil.getIntegerInput("Enter Agency ID");
+            String phone = InputUtil.getPhone("Enter Phone (10 digits)");
+            String email = InputUtil.getEmail("Enter Email");
+            int exp = InputUtil.getPositiveInt("Enter Experience (years)");
+            int agencyId = InputUtil.getPositiveInt("Enter Agency ID");
 
             String query = "INSERT INTO agent VALUES (?, ?, ?, ?, ?, ?)";
 
@@ -25,10 +25,10 @@ public class AgentService {
             ps.setInt(6, agencyId);
 
             ps.executeUpdate();
-            System.out.println("Agent added successfully");
+            System.out.println("✅ Agent added successfully");
 
         } catch (Exception e) {
-            System.out.println("Error " + e.getMessage());
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
@@ -36,9 +36,7 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            String query = "SELECT * FROM agent";
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(query);
+            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM agent");
 
             List<String> headers = Arrays.asList(
                     "ID", "Name", "Phone", "Email", "Experience", "Agency ID"
@@ -60,79 +58,220 @@ public class AgentService {
             TableUtil.printTable(headers, rows);
 
         } catch (Exception e) {
-            System.out.println("Error " + e.getMessage());
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
-    public static void findAgentById(){
-        try{
-            Connection conn=DBConnection.getConnection();
-        }
-        catch (Exception e){
-            System.out.println("Error "+e.getMessage());
-        }
-    }
-    public static void updateAgent(){
-        try{
-            Connection conn=DBConnection.getConnection();
-        }
-        catch (Exception e){
-            System.out.println("Error "+e.getMessage());
-        }
-    }
-    public static void deleteAgent(){
-        try{
-            Connection conn=DBConnection.getConnection();
-        }
-        catch (Exception e){
-            System.out.println("Error "+e.getMessage());
-        }
-    }
-    public static void searchAgentByName(){
-        try{
-            Connection conn=DBConnection.getConnection();
-        }
-        catch (Exception e){
-            System.out.println("Error "+e.getMessage());
+
+    public static void findAgentById() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Agent ID");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM agent WHERE agent_id=?");
+            ps.setInt(1, id);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("\nAgent Details:");
+                System.out.println("Name: " + rs.getString("name"));
+                System.out.println("Phone: " + rs.getString("phone"));
+                System.out.println("Email: " + rs.getString("email"));
+                System.out.println("Experience: " + rs.getInt("experience_year"));
+            } else {
+                System.out.println("❌ Agent not found");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
-    public static void filterAgentsByExperience(){
-        try{
-            Connection conn=DBConnection.getConnection();
-        }
-        catch (Exception e){
-            System.out.println("Error "+e.getMessage());
+
+    public static void updateAgent() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Agent ID");
+
+            String name = InputUtil.getStringInput("New Name");
+            String phone = InputUtil.getPhone("New Phone");
+            String email = InputUtil.getEmail("New Email");
+            int exp = InputUtil.getPositiveInt("New Experience");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE agent SET name=?, phone=?, email=?, experience_year=? WHERE agent_id=?"
+            );
+
+            ps.setString(1, name);
+            ps.setString(2, phone);
+            ps.setString(3, email);
+            ps.setInt(4, exp);
+            ps.setInt(5, id);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0)
+                System.out.println("✅ Updated successfully");
+            else
+                System.out.println("❌ Agent not found");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
-    public static void filterAgentsByAgency(){
-        try{
-            Connection conn=DBConnection.getConnection();
-        }
-        catch (Exception e){
-            System.out.println("Error "+e.getMessage());
+
+    public static void deleteAgent() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Agent ID");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM agent WHERE agent_id=?");
+
+            ps.setInt(1, id);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0)
+                System.out.println("✅ Deleted successfully");
+            else
+                System.out.println("❌ Agent not found");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
-    public static void countAgency(){
-        try{
-            Connection conn=DBConnection.getConnection();
-        }
-        catch (Exception e){
-            System.out.println("Error "+e.getMessage());
+
+    public static void searchAgentByName() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String name = InputUtil.getStringInput("Enter name to search");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM agent WHERE name LIKE ?");
+            ps.setString(1, "%" + name + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+
+            if (rs.next()) {
+                System.out.println("\nAgent Details:");
+                System.out.println("Name: " + rs.getString("name"));
+                System.out.println("Phone: " + rs.getString("phone"));
+                System.out.println("Email: " + rs.getString("email"));
+                System.out.println("Experience: " + rs.getInt("experience_year"));
+            } else {
+                System.out.println("❌ Agent not found");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
-    public static void sortAgentsByExperience(){
-        try{
-            Connection conn=DBConnection.getConnection();
-        }
-        catch (Exception e){
-            System.out.println("Error "+e.getMessage());
+
+    public static void filterAgentsByExperience() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int exp = InputUtil.getPositiveInt("Enter minimum experience");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM agent WHERE experience_year >= ?");
+            ps.setInt(1, exp);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                System.out.println(
+                        rs.getString("name") + " (" +
+                                rs.getInt("experience_year") + " years)"
+                );
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
-    public static void checkAgentExists(){
-        try{
-            Connection conn=DBConnection.getConnection();
+
+    public static void filterAgentsByAgency() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agencyId = InputUtil.getPositiveInt("Enter Agency ID");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM agent WHERE agency_id=?");
+            ps.setInt(1, agencyId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                System.out.println(rs.getString("name"));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
-        catch (Exception e){
-            System.out.println("Error "+e.getMessage());
+    }
+
+    public static void countAgency() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            ResultSet rs = conn.createStatement()
+                    .executeQuery("SELECT COUNT(*) FROM agent");
+
+            if (rs.next()) {
+                System.out.println("Total Agents: " + rs.getInt(1));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void sortAgentsByExperience() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            ResultSet rs = conn.createStatement()
+                    .executeQuery("SELECT * FROM agent ORDER BY experience_year DESC");
+
+            while (rs.next()) {
+                System.out.println(
+                        rs.getString("name") + " - " +
+                                rs.getInt("experience_year") + " years"
+                );
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void checkAgentExists() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Agent ID");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT 1 FROM agent WHERE agent_id=?");
+            ps.setInt(1, id);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next())
+                System.out.println("✅ Agent exists");
+            else
+                System.out.println("❌ Agent does not exist");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 }

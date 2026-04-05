@@ -7,10 +7,10 @@ public class ClientService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int id = InputUtil.getIntegerInput("Enter Client ID");
+            int id = InputUtil.getPositiveInt("Enter Client ID");
             String name = InputUtil.getStringInput("Enter Name");
-            String phone = InputUtil.getStringInput("Enter Phone");
-            String email = InputUtil.getStringInput("Enter Email");
+            String phone = InputUtil.getPhone("Enter Phone (10 digits)");
+            String email = InputUtil.getEmail("Enter Email");
             String address = InputUtil.getStringInput("Enter Address");
 
             String query = "INSERT INTO client VALUES (?, ?, ?, ?, ?)";
@@ -23,10 +23,10 @@ public class ClientService {
             ps.setString(5, address);
 
             ps.executeUpdate();
-            System.out.println("Client added successfully");
+            System.out.println("✅ Client added successfully");
 
         } catch (Exception e) {
-            System.out.println("Error " + e.getMessage());
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
@@ -34,9 +34,7 @@ public class ClientService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            String query = "SELECT * FROM client";
-            Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery(query);
+            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM client");
 
             List<String> headers = Arrays.asList(
                     "ID", "Name", "Phone", "Email", "Address"
@@ -57,7 +55,7 @@ public class ClientService {
             TableUtil.printTable(headers, rows);
 
         } catch (Exception e) {
-            System.out.println("Error " + e.getMessage());
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
@@ -65,144 +63,371 @@ public class ClientService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int clientId = InputUtil.getIntegerInput("Enter Client ID");
-            String role = InputUtil.getStringInput("Enter Role");
+            int clientId = InputUtil.getPositiveInt("Enter Client ID");
 
-            String query = "INSERT INTO client_role VALUES (?, ?)";
+            // 🔒 Role validation loop
+            String role;
+            while (true) {
+                role = InputUtil.getStringInput("Enter Role (Buyer/Seller/Tenant)");
 
-            PreparedStatement ps = conn.prepareStatement(query);
+                if (role.equalsIgnoreCase("Buyer") ||
+                        role.equalsIgnoreCase("Seller") ||
+                        role.equalsIgnoreCase("Tenant")) {
+
+                    // normalize (store consistent format)
+                    role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
+                    break;
+                } else {
+                    System.out.println("❌ Invalid role! Only Buyer, Seller, Tenant allowed.");
+                }
+            }
+
+            // 🔍 Check if role already exists
+            PreparedStatement check = conn.prepareStatement(
+                    "SELECT 1 FROM client_role WHERE client_id=? AND role=?"
+            );
+            check.setInt(1, clientId);
+            check.setString(2, role);
+
+            ResultSet rs = check.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("⚠️ Role already exists for this client");
+                return;
+            }
+
+            // ✅ Insert role
+            PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO client_role VALUES (?, ?)"
+            );
+
             ps.setInt(1, clientId);
             ps.setString(2, role);
 
             ps.executeUpdate();
-            System.out.println("Role assigned successfully");
+
+            System.out.println("✅ Role assigned successfully");
 
         } catch (Exception e) {
-            System.out.println("Error " + e.getMessage());
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
-    public static void findClientById(){
-        try{
-            Connection conn=DBConnection.getConnection();
+    public static void findClientById() {
+        try {
+            Connection conn = DBConnection.getConnection();
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
-        }
-    }
+            int id = InputUtil.getPositiveInt("Enter Client ID");
 
-    public static void updateClient(){
-        try{
-            Connection conn=DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM client WHERE client_id=?");
+            ps.setInt(1, id);
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
-        }
-    }
+            ResultSet rs = ps.executeQuery();
 
-    public static void deleteClient(){
-        try{
-            Connection conn=DBConnection.getConnection();
+            if (rs.next()) {
+                System.out.println("\nClient Details:");
+                System.out.println("Name: " + rs.getString("client_name"));
+                System.out.println("Phone: " + rs.getString("client_phone"));
+                System.out.println("Email: " + rs.getString("client_email"));
+                System.out.println("Address: " + rs.getString("client_address"));
+            } else {
+                System.out.println("❌ Client not found");
+            }
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
-    public static void searchClientByName(){
-        try{
-            Connection conn=DBConnection.getConnection();
+    public static void updateClient() {
+        try {
+            Connection conn = DBConnection.getConnection();
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
-        }
-    }
+            int id = InputUtil.getPositiveInt("Enter Client ID");
 
-    public static void countClients(){
-        try{
-            Connection conn=DBConnection.getConnection();
+            String name = InputUtil.getStringInput("New Name");
+            String phone = InputUtil.getPhone("New Phone");
+            String email = InputUtil.getEmail("New Email");
+            String address = InputUtil.getStringInput("New Address");
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
-        }
-    }
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE client SET client_name=?, client_phone=?, client_email=?, client_address=? WHERE client_id=?"
+            );
 
-    public static void sortClientsByName(){
-        try{
-            Connection conn=DBConnection.getConnection();
+            ps.setString(1, name);
+            ps.setString(2, phone);
+            ps.setString(3, email);
+            ps.setString(4, address);
+            ps.setInt(5, id);
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
-        }
-    }
+            int rows = ps.executeUpdate();
 
-    public static void sortClientsById(){
-        try{
-            Connection conn=DBConnection.getConnection();
+            if (rows > 0)
+                System.out.println("✅ Updated successfully");
+            else
+                System.out.println("❌ Client not found");
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
-    public static void filterClientsByRole(){
-        try{
-            Connection conn=DBConnection.getConnection();
+    public static void deleteClient() {
+        try {
+            Connection conn = DBConnection.getConnection();
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
-        }
-    }
+            int id = InputUtil.getPositiveInt("Enter Client ID");
 
-    public static void removeClientRole(){
-        try{
-            Connection conn=DBConnection.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM client WHERE client_id=?");
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
-        }
-    }
+            ps.setInt(1, id);
 
-    public static void updateClientRole(){
-        try{
-            Connection conn=DBConnection.getConnection();
+            int rows = ps.executeUpdate();
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
+            if (rows > 0)
+                System.out.println("✅ Deleted successfully");
+            else
+                System.out.println("❌ Client not found");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
-    public static void checkClientExists(){
-        try{
-            Connection conn=DBConnection.getConnection();
+    public static void searchClientByName() {
+        try {
+            Connection conn = DBConnection.getConnection();
 
-            //query
-        }
-        catch (Exception e){
-            System.out.println("Error"+e.getMessage());
+            String name = InputUtil.getStringInput("Enter Name to search");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM client WHERE client_name LIKE ?");
+            ps.setString(1, "%" + name + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("\nClient Details:");
+                System.out.println("Name: " + rs.getString("client_name"));
+                System.out.println("Phone: " + rs.getString("client_phone"));
+                System.out.println("Email: " + rs.getString("client_email"));
+                System.out.println("Address: " + rs.getString("client_address"));
+            } else {
+                System.out.println("❌ Client not found");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
+    public static void countClients() {
+        try {
+            Connection conn = DBConnection.getConnection();
 
+            ResultSet rs = conn.createStatement()
+                    .executeQuery("SELECT COUNT(*) FROM client");
 
+            if (rs.next()) {
+                System.out.println("Total Clients: " + rs.getInt(1));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void sortClientsByName() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            ResultSet rs = conn.createStatement()
+                    .executeQuery("SELECT * FROM client ORDER BY client_name");
+
+            while (rs.next()) {
+                System.out.println(rs.getString("client_name"));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void sortClientsById() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            ResultSet rs = conn.createStatement()
+                    .executeQuery("SELECT * FROM client ORDER BY client_id");
+
+            while (rs.next()) {
+                System.out.println(rs.getString("client_name"));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void filterClientsByRole() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String role = InputUtil.getStringInput("Enter Role");
+
+            PreparedStatement ps = conn.prepareStatement("""
+                    SELECT c.client_name
+                    FROM client c
+                    JOIN client_role cr ON c.client_id = cr.client_id
+                    WHERE cr.role = ?
+                    """);
+
+            ps.setString(1, role);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                System.out.println(rs.getString("client_name"));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void removeClientRole() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Client ID");
+
+            PreparedStatement fetch = conn.prepareStatement(
+                    "SELECT role FROM client_role WHERE client_id=?"
+            );
+            fetch.setInt(1, id);
+
+            ResultSet rs = fetch.executeQuery();
+
+            List<String> roles = new ArrayList<>();
+
+            while (rs.next()) {
+                roles.add(rs.getString("role"));
+            }
+
+            if (roles.isEmpty()) {
+                System.out.println("❌ No roles found for this client");
+                return;
+            }
+
+            System.out.println("Roles for this client:");
+            for (String r : roles) {
+                System.out.println("- " + r);
+            }
+
+            String role;
+            while (true) {
+                role = InputUtil.getStringInput("Enter role to delete");
+
+                if (role.equalsIgnoreCase("Buyer") ||
+                        role.equalsIgnoreCase("Seller") ||
+                        role.equalsIgnoreCase("Tenant")) {
+
+                    role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
+
+                    if (roles.contains(role)) break;
+
+                    System.out.println("❌ Client does not have this role");
+                } else {
+                    System.out.println("❌ Invalid role! Only Buyer/Seller/Tenant allowed.");
+                }
+            }
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM client_role WHERE client_id=? AND role=?"
+            );
+
+            ps.setInt(1, id);
+            ps.setString(2, role);
+
+            ps.executeUpdate();
+
+            System.out.println("✅ Role removed successfully");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void updateClientRole() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Client ID");
+            String role;
+            while (true) {
+                role = InputUtil.getStringInput("Enter Role (Buyer/Seller/Tenant)");
+
+                if (role.equalsIgnoreCase("Buyer") ||
+                        role.equalsIgnoreCase("Seller") ||
+                        role.equalsIgnoreCase("Tenant")) {
+
+                    // normalize (store consistent format)
+                    role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
+                    break;
+                } else {
+                    System.out.println("❌ Invalid role! Only Buyer, Seller, Tenant allowed.");
+                }
+            }
+
+            PreparedStatement check = conn.prepareStatement(
+                    "SELECT 1 FROM client_role WHERE client_id=? AND role=?"
+            );
+            check.setInt(1, id);
+            check.setString(2, role);
+
+            ResultSet rs = check.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("⚠️ Role already exists for this client");
+            } else {
+                PreparedStatement insert = conn.prepareStatement(
+                        "INSERT INTO client_role VALUES (?, ?)"
+                );
+
+                insert.setInt(1, id);
+                insert.setString(2, role);
+
+                insert.executeUpdate();
+
+                System.out.println("✅ Role added successfully");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void checkClientExists() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Client ID");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT 1 FROM client WHERE client_id=?");
+
+            ps.setInt(1, id);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next())
+                System.out.println("✅ Client exists");
+            else
+                System.out.println("❌ Client does not exist");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
 }
