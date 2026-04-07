@@ -33,18 +33,15 @@ public class AdministratorCLI {
         }
     }
 
-
     public static void showHeader() {
         System.out.println("\n==============================================================");
         System.out.println("            REAL ESTATE MANAGEMENT SYSTEM");
         System.out.println("==============================================================");
     }
 
-
     public static void printTableMenu(String title, String[] options) {
         int cols = 3;
 
-        // 1. Find max length to ensure all columns fit the longest text
         int maxLen = title.length();
         for (int i = 0; i < options.length; i++) {
             String text = (i + 1) + ". " + options[i];
@@ -53,21 +50,16 @@ public class AdministratorCLI {
             }
         }
 
-
         int colWidth = maxLen + 2;
         int totalInnerWidth = (colWidth * cols) + (cols - 1);
 
-
         System.out.println("╔" + "═".repeat(totalInnerWidth) + "╗");
 
-
         System.out.printf("║%-" + totalInnerWidth + "s║%n", centerText(title, totalInnerWidth));
-
 
         System.out.println("╠" + "═".repeat(colWidth) + "╦"
                 + "═".repeat(colWidth) + "╦"
                 + "═".repeat(colWidth) + "╣");
-
 
         int index = 0;
         int rows = (int) Math.ceil(options.length / (double) cols);
@@ -86,7 +78,6 @@ public class AdministratorCLI {
             System.out.printf("║%-" + colWidth + "s║%-" + colWidth + "s║%-" + colWidth + "s║%n",
                     row[0], row[1], row[2]);
         }
-
 
         System.out.println("╚" + "═".repeat(colWidth) + "╩"
                 + "═".repeat(colWidth) + "╩"

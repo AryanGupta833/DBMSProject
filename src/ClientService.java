@@ -142,27 +142,69 @@ public class ClientService {
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
 
-            String name = InputUtil.getStringInput("New Name");
-            String phone = InputUtil.getPhone("New Phone");
-            String email = InputUtil.getEmail("New Email");
-            String address = InputUtil.getStringInput("New Address");
+            while (true) {
+                System.out.println("\n--- Update Client Menu ---");
+                System.out.println("1. Update Name");
+                System.out.println("2. Update Phone");
+                System.out.println("3. Update Email");
+                System.out.println("4. Update Address");
+                System.out.println("5. Exit");
 
-            PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE client SET client_name=?, client_phone=?, client_email=?, client_address=? WHERE client_id=?"
-            );
+                int choice = InputUtil.getPositiveInt("Enter choice");
 
-            ps.setString(1, name);
-            ps.setString(2, phone);
-            ps.setString(3, email);
-            ps.setString(4, address);
-            ps.setInt(5, id);
+                if (choice == 5) {
+                    System.out.println("Exiting update...");
+                    break;
+                }
 
-            int rows = ps.executeUpdate();
+                String query = "";
+                PreparedStatement ps = null;
 
-            if (rows > 0)
-                System.out.println("✅ Updated successfully");
-            else
-                System.out.println("❌ Client not found");
+                switch (choice) {
+                    case 1:
+                        String name = InputUtil.getStringInput("New Name");
+                        query = "UPDATE client SET client_name=? WHERE client_id=?";
+                        ps = conn.prepareStatement(query);
+                        ps.setString(1, name);
+                        ps.setInt(2, id);
+                        break;
+
+                    case 2:
+                        String phone = InputUtil.getPhone("New Phone");
+                        query = "UPDATE client SET client_phone=? WHERE client_id=?";
+                        ps = conn.prepareStatement(query);
+                        ps.setString(1, phone);
+                        ps.setInt(2, id);
+                        break;
+
+                    case 3:
+                        String email = InputUtil.getEmail("New Email");
+                        query = "UPDATE client SET client_email=? WHERE client_id=?";
+                        ps = conn.prepareStatement(query);
+                        ps.setString(1, email);
+                        ps.setInt(2, id);
+                        break;
+
+                    case 4:
+                        String address = InputUtil.getStringInput("New Address");
+                        query = "UPDATE client SET client_address=? WHERE client_id=?";
+                        ps = conn.prepareStatement(query);
+                        ps.setString(1, address);
+                        ps.setInt(2, id);
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice");
+                        continue;
+                }
+
+                int rows = ps.executeUpdate();
+
+                if (rows > 0)
+                    System.out.println("✅ Updated successfully");
+                else
+                    System.out.println("❌ Client not found");
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
@@ -248,27 +290,60 @@ public class ClientService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            String role = InputUtil.getStringInput("Enter Role");
+            String role;
+
+            while (true) {
+                role = InputUtil.getStringInput("Enter Role (Buyer / Seller / Tenant)");
+
+                if (role.equalsIgnoreCase("Buyer") ||
+                        role.equalsIgnoreCase("Seller") ||
+                        role.equalsIgnoreCase("Tenant")) {
+                    role = role.substring(0,1).toUpperCase() + role.substring(1).toLowerCase();
+                    break;
+                } else {
+                    System.out.println("❌ Invalid role. Allowed: Buyer, Seller, Tenant");
+                }
+            }
 
             PreparedStatement ps = conn.prepareStatement("""
-                    SELECT c.client_name
-                    FROM client c
-                    JOIN client_role cr ON c.client_id = cr.client_id
-                    WHERE cr.role = ?
-                    """);
+                SELECT c.client_id, c.client_name, c.client_phone,
+                       c.client_email, c.client_address
+                FROM client c
+                JOIN client_role cr ON c.client_id = cr.client_id
+                WHERE cr.role = ?
+                """);
 
             ps.setString(1, role);
 
             ResultSet rs = ps.executeQuery();
 
+            List<String> headers = Arrays.asList(
+                    "ID", "Name", "Phone", "Email", "Address"
+            );
+
+            List<List<String>> rows = new ArrayList<>();
+
             while (rs.next()) {
-                System.out.println(rs.getString("client_name"));
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("client_id")),
+                        rs.getString("client_name"),
+                        rs.getString("client_phone"),
+                        rs.getString("client_email"),
+                        rs.getString("client_address")
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ No clients found for role: " + role);
+            } else {
+                TableUtil.printTable(headers, rows);
             }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
     }
+
     public static void removeClientRole() {
         try {
             Connection conn = DBConnection.getConnection();
