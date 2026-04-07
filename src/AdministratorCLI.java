@@ -115,11 +115,17 @@ public class AdministratorCLI {
         while (true) {
             clearScreen();
             showHeader();
+
             printTableMenu("CLIENT MENU", new String[]{
                     "Add Client",
                     "View Clients",
                     "Find Client by ID",
                     "Update Client",
+
+                    "View Client with Roles",        // NEW
+                    "Client Transaction History",    // NEW
+                    "Client Summary",                // NEW
+
                     "Delete Client",
                     "Assign Role",
                     "Search Client by Name",
@@ -140,17 +146,23 @@ public class AdministratorCLI {
                 case 2 -> ClientService.viewClient();
                 case 3 -> ClientService.findClientById();
                 case 4 -> ClientService.updateClient();
-                case 5 -> ClientService.deleteClient();
-                case 6 -> ClientService.assignRole();
-                case 7 -> ClientService.searchClientByName();
-                case 8 -> ClientService.countClients();
-                case 9 -> ClientService.sortClientsByName();
-                case 10 -> ClientService.sortClientsById();
-                case 11 -> ClientService.filterClientsByRole();
-                case 12 -> ClientService.removeClientRole();
-                case 13 -> ClientService.updateClientRole();
-                case 14 -> ClientService.checkClientExists();
-                case 15 -> { return; }
+
+                case 5 -> ClientService.viewClientWithRoles();      // NEW
+                case 6 -> ClientService.viewClientTransactions();   // NEW
+                case 7 -> ClientService.clientSummary();            // NEW
+
+                case 8 -> ClientService.deleteClient();
+                case 9 -> ClientService.assignRole();
+                case 10 -> ClientService.searchClientByName();
+                case 11 -> ClientService.countClients();
+                case 12 -> ClientService.sortClientsByName();
+                case 13 -> ClientService.sortClientsById();
+                case 14 -> ClientService.filterClientsByRole();
+                case 15 -> ClientService.removeClientRole();
+                case 16 -> ClientService.updateClientRole();
+                case 17 -> ClientService.checkClientExists();
+                case 18 -> { return; }
+
                 default -> System.out.println("Invalid choice.");
             }
         }
@@ -160,11 +172,18 @@ public class AdministratorCLI {
         while (true) {
             clearScreen();
             showHeader();
+
             printTableMenu("AGENT MENU", new String[]{
                     "Add Agent",
                     "View Agents",
                     "Find Agent by ID",
                     "Update Agent",
+
+                    "Agent Performance",        // NEW
+                    "Agent Summary",            // NEW
+                    "Top Performing Agent",     // NEW
+                    "View Agent Properties",    // NEW
+
                     "Delete Agent",
                     "Search Agent by Name",
                     "Filter by Experience",
@@ -182,14 +201,21 @@ public class AdministratorCLI {
                 case 2 -> AgentService.viewAgent();
                 case 3 -> AgentService.findAgentById();
                 case 4 -> AgentService.updateAgent();
-                case 5 -> AgentService.deleteAgent();
-                case 6 -> AgentService.searchAgentByName();
-                case 7 -> AgentService.filterAgentsByExperience();
-                case 8 -> AgentService.filterAgentsByAgency();
-                case 9 -> AgentService.countAgency();
-                case 10 -> AgentService.sortAgentsByExperience();
-                case 11 -> AgentService.checkAgentExists();
-                case 12 -> { return; }
+
+                case 5 -> AgentService.agentPerformance();     // NEW
+                case 6 -> AgentService.agentSummary();         // NEW
+                case 7 -> AgentService.topAgent();             // NEW
+                case 8 -> AgentService.viewAgentProperties();  // NEW
+
+                case 9 -> AgentService.deleteAgent();
+                case 10 -> AgentService.searchAgentByName();
+                case 11 -> AgentService.filterAgentsByExperience();
+                case 12 -> AgentService.filterAgentsByAgency();
+                case 13 -> AgentService.countAgency();
+                case 14 -> AgentService.sortAgentsByExperience();
+                case 15 -> AgentService.checkAgentExists();
+                case 16 -> { return; }
+
                 default -> System.out.println("Invalid choice.");
             }
         }
@@ -199,12 +225,20 @@ public class AdministratorCLI {
         while (true) {
             clearScreen();
             showHeader();
+
             printTableMenu("PROPERTY MENU", new String[]{
                     "Add Property",
                     "View Properties",
                     "Update Availability",
                     "Find Property by ID",
                     "Update Property",
+
+                    "Update Listing",          // NEW
+                    "Remove Listing",          // NEW
+                    "Sell Property",           // NEW
+                    "Rent Property",           // NEW
+                    "Relist Property",         // NEW
+
                     "Delete Property",
                     "Search by City",
                     "Search by Locality",
@@ -226,17 +260,25 @@ public class AdministratorCLI {
                 case 3 -> PropertyService.updateAvailability();
                 case 4 -> PropertyService.findPropertyById();
                 case 5 -> PropertyService.updateProperty();
-                case 6 -> PropertyService.deleteProperty();
-                case 7 -> PropertyService.searchPropertyByCity();
-                case 8 -> PropertyService.searchPropertyByLocality();
-                case 9 -> PropertyService.filterByBedrooms();
-                case 10 -> PropertyService.filterBySizeRange();
-                case 11 -> PropertyService.filterByAvailability();
-                case 12 -> PropertyService.countProperties();
-                case 13 -> PropertyService.sortPropertiesByPrice();
-                case 14 -> PropertyService.sortPropertiesBySize();
-                case 15 -> PropertyService.checkPropertyExists();
-                case 16 -> { return; }
+
+                case 6 -> PropertyService.updateListing();     // NEW
+                case 7 -> PropertyService.removeListing();     // NEW
+                case 8 -> PropertyService.sellProperty();      // NEW
+                case 9 -> PropertyService.rentProperty();      // NEW
+                case 10 -> PropertyService.relistProperty();   // NEW
+
+                case 11 -> PropertyService.deleteProperty();
+                case 12 -> PropertyService.searchPropertyByCity();
+                case 13 -> PropertyService.searchPropertyByLocality();
+                case 14 -> PropertyService.filterByBedrooms();
+                case 15 -> PropertyService.filterBySizeRange();
+                case 16 -> PropertyService.filterByAvailability();
+                case 17 -> PropertyService.countProperties();
+                case 18 -> PropertyService.sortPropertiesByPrice();
+                case 19 -> PropertyService.sortPropertiesBySize();
+                case 20 -> PropertyService.checkPropertyExists();
+                case 21 -> { return; }
+
                 default -> System.out.println("Invalid choice.");
             }
         }
@@ -246,10 +288,16 @@ public class AdministratorCLI {
         while (true) {
             clearScreen();
             showHeader();
+
             printTableMenu("SALES MENU", new String[]{
                     "Record Sale",
                     "View Sales",
                     "Find Sale by ID",
+
+                    "Sales Summary",          // NEW
+                    "Top Buyer",              // NEW
+                    "Sales by Date Range",    // NEW
+
                     "Delete Sale",
                     "Filter Sales by Date",
                     "Filter Sales by Agent",
@@ -267,15 +315,21 @@ public class AdministratorCLI {
                 case 1 -> SalesService.RecordSale();
                 case 2 -> SalesService.viewSales();
                 case 3 -> SalesService.findSaleById();
-                case 4 -> SalesService.deleteSale();
-                case 5 -> SalesService.filterSalesByDate();
-                case 6 -> SalesService.filterSalesByAgent();
-                case 7 -> SalesService.filterSalesByProperty();
-                case 8 -> SalesService.totalSalesAmount();
-                case 9 -> SalesService.countSales();
-                case 10 -> SalesService.sortSalesByAmount();
-                case 11 -> SalesService.sortSalesByDate();
-                case 12 -> { return; }
+
+                case 4 -> SalesService.salesSummary();      // NEW
+                case 5 -> SalesService.topBuyer();          // NEW
+                case 6 -> SalesService.salesByDateRange();  // NEW
+
+                case 7 -> SalesService.deleteSale();
+                case 8 -> SalesService.filterSalesByDate();
+                case 9 -> SalesService.filterSalesByAgent();
+                case 10 -> SalesService.filterSalesByProperty();
+                case 11 -> SalesService.totalSalesAmount();
+                case 12 -> SalesService.countSales();
+                case 13 -> SalesService.sortSalesByAmount();
+                case 14 -> SalesService.sortSalesByDate();
+                case 15 -> { return; }
+
                 default -> System.out.println("Invalid choice.");
             }
         }
@@ -285,10 +339,16 @@ public class AdministratorCLI {
         while (true) {
             clearScreen();
             showHeader();
+
             printTableMenu("RENT MENU", new String[]{
                     "Record Rent",
                     "View Rent Records",
                     "Find Rent by ID",
+
+                    "Rent Summary",          // NEW
+                    "Top Tenant",            // NEW
+                    "Rent by Date Range",    // NEW
+
                     "Delete Rent",
                     "Filter Rent by Date",
                     "Filter Rent by Client",
@@ -306,15 +366,21 @@ public class AdministratorCLI {
                 case 1 -> RentService.recordRent();
                 case 2 -> RentService.viewRent();
                 case 3 -> RentService.findRentById();
-                case 4 -> RentService.deleteRent();
-                case 5 -> RentService.filterRentByDate();
-                case 6 -> RentService.filterRentByClient();
-                case 7 -> RentService.filterRentByProperty();
-                case 8 -> RentService.totalRentAmount();
-                case 9 -> RentService.countRents();
-                case 10 -> RentService.sortRentByAmount();
-                case 11 -> RentService.sortRentByDate();
-                case 12 -> { return; }
+
+                case 4 -> RentService.rentSummary();       // NEW
+                case 5 -> RentService.topTenant();         // NEW
+                case 6 -> RentService.rentByDateRange();   // NEW
+
+                case 7 -> RentService.deleteRent();
+                case 8 -> RentService.filterRentByDate();
+                case 9 -> RentService.filterRentByClient();
+                case 10 -> RentService.filterRentByProperty();
+                case 11 -> RentService.totalRentAmount();
+                case 12 -> RentService.countRents();
+                case 13 -> RentService.sortRentByAmount();
+                case 14 -> RentService.sortRentByDate();
+                case 15 -> { return; }
+
                 default -> System.out.println("Invalid choice.");
             }
         }

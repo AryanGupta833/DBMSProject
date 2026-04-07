@@ -498,7 +498,7 @@ public class PropertyService {
         }
     }
 
-    private static void printPropertyTable(ResultSet rs) throws Exception {
+    public  static void printPropertyTable(ResultSet rs) throws Exception {
 
         List<String> headers = Arrays.asList(
                 "ID", "City", "Locality", "Size", "BHK",
@@ -526,4 +526,191 @@ public class PropertyService {
             TableUtil.printTable(headers, rows);
         }
     }
+
+    public static void sellProperty() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+            int buyerId = InputUtil.getPositiveInt("Enter Buyer ID");
+            int sellerId = InputUtil.getPositiveInt("Enter Seller ID");
+            int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+            int price = InputUtil.getPositiveInt("Enter Sale Price");
+
+            // insert into sales
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "INSERT INTO sales (sales_price, sales_date, buyer_id, seller_id, agent_id, property_id) VALUES (?, CURDATE(), ?, ?, ?, ?)"
+            );
+
+            ps1.setInt(1, price);
+            ps1.setInt(2, buyerId);
+            ps1.setInt(3, sellerId);
+            ps1.setInt(4, agentId);
+            ps1.setInt(5, propertyId);
+
+            ps1.executeUpdate();
+
+            // update property owner + availability
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "UPDATE property SET availability_status=false, owner_id=? WHERE property_id=?"
+            );
+
+            ps2.setInt(1, buyerId);
+            ps2.setInt(2, propertyId);
+            ps2.executeUpdate();
+
+            System.out.println("✅ Property sold successfully");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void rentProperty() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+            int tenantId = InputUtil.getPositiveInt("Enter Tenant ID");
+            int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+            int rentAmount = InputUtil.getPositiveInt("Enter Rent Amount");
+            String startDate = InputUtil.getStringInput("Enter Start Date (YYYY-MM-DD)");
+            String endDate = InputUtil.getStringInput("Enter End Date (YYYY-MM-DD)");
+
+            // insert into rent
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "INSERT INTO rent (rent_amount, rent_start_date, rent_end_date, tenant_id, property_id, agent_id) VALUES (?, ?, ?, ?, ?, ?)"
+            );
+
+            ps1.setInt(1, rentAmount);
+            ps1.setString(2, startDate);
+            ps1.setString(3, endDate);
+            ps1.setInt(4, tenantId);
+            ps1.setInt(5, propertyId);
+            ps1.setInt(6, agentId);
+
+            ps1.executeUpdate();
+
+            // mark unavailable
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "UPDATE property SET availability_status=false WHERE property_id=?"
+            );
+
+            ps2.setInt(1, propertyId);
+            ps2.executeUpdate();
+
+            System.out.println("✅ Property rented successfully");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void relistProperty() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+            String type = InputUtil.getStringInput("Enter Listing Type (Sale/Rent)");
+            int price = InputUtil.getPositiveInt("Enter Price");
+
+            // make property available again
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "UPDATE property SET availability_status=true WHERE property_id=?"
+            );
+            ps1.setInt(1, propertyId);
+            ps1.executeUpdate();
+
+            // check if listing exists
+            PreparedStatement check = conn.prepareStatement(
+                    "SELECT * FROM property_type WHERE property_id=? AND listing_type=?"
+            );
+            check.setInt(1, propertyId);
+            check.setString(2, type);
+
+            ResultSet rs = check.executeQuery();
+
+            if (rs.next()) {
+                // update existing listing
+                PreparedStatement ps2 = conn.prepareStatement(
+                        "UPDATE property_type SET price=? WHERE property_id=? AND listing_type=?"
+                );
+                ps2.setInt(1, price);
+                ps2.setInt(2, propertyId);
+                ps2.setString(3, type);
+                ps2.executeUpdate();
+
+            } else {
+                // insert new listing
+                PreparedStatement ps3 = conn.prepareStatement(
+                        "INSERT INTO property_type VALUES (?, ?, ?)"
+                );
+                ps3.setString(1, type);
+                ps3.setInt(2, price);
+                ps3.setInt(3, propertyId);
+                ps3.executeUpdate();
+            }
+
+            System.out.println("✅ Property relisted successfully");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void removeListing() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE property SET availability_status=false WHERE property_id=?"
+            );
+
+            ps.setInt(1, propertyId);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0)
+                System.out.println("✅ Property removed from listing");
+            else
+                System.out.println("❌ Property not found");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void updateListing() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+            String type = InputUtil.getStringInput("Enter Listing Type (Sale/Rent)");
+            int price = InputUtil.getPositiveInt("Enter New Price");
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "UPDATE property_type SET price=? WHERE property_id=? AND listing_type=?"
+            );
+
+            ps.setInt(1, price);
+            ps.setInt(2, propertyId);
+            ps.setString(3, type);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0)
+                System.out.println("✅ Listing updated");
+            else
+                System.out.println("❌ Listing not found");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+
+
+
 }

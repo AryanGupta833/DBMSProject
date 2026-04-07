@@ -5,57 +5,6 @@ import java.util.Scanner;
 
 public class SalesService {
 
-    public static void RecordSale(){
-        try{
-            Connection conn = DBConnection.getConnection();
-            Scanner sc = new Scanner(System.in);
-
-            System.out.print("Enter Sales ID: ");
-            int salesId = sc.nextInt();
-
-            System.out.print("Enter Sales Price: ");
-            int salesPrice = sc.nextInt();
-
-            System.out.print("Enter Sales Date (YYYY-MM-DD): ");
-            String salesDate = sc.next();
-
-            System.out.print("Enter Buyer ID: ");
-            int buyerId = sc.nextInt();
-
-            System.out.print("Enter Seller ID: ");
-            int sellerId = sc.nextInt();
-
-            System.out.print("Enter Agent ID: ");
-            int agentId = sc.nextInt();
-
-            System.out.print("Enter Property ID: ");
-            int propertyId = sc.nextInt();
-
-            String query = "INSERT INTO sales (sales_id, sales_price, sales_date, buyer_id, seller_id, agent_id, property_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement ps = conn.prepareStatement(query);
-
-            ps.setInt(1, salesId);
-            ps.setInt(2, salesPrice);
-            ps.setString(3, salesDate);
-            ps.setInt(4, buyerId);
-            ps.setInt(5, sellerId);
-            ps.setInt(6, agentId);
-            ps.setInt(7, propertyId);
-
-            ps.executeUpdate();
-
-            String updateQuery = "UPDATE property SET availability_status = false WHERE property_id = ?";
-            PreparedStatement ps2 = conn.prepareStatement(updateQuery);
-            ps2.setInt(1, propertyId);
-            ps2.executeUpdate();
-
-            System.out.println("✅ Sale recorded successfully!");
-
-        } catch (Exception e){
-            System.out.println("Error: " + e.getMessage());
-        }
-    }
-
     public static void viewSales(){
         try {
             Connection conn = DBConnection.getConnection();
@@ -128,20 +77,40 @@ public class SalesService {
             System.out.print("Enter Sales ID to delete: ");
             int id = sc.nextInt();
 
-            String query = "DELETE FROM sales WHERE sales_id = ?";
-            PreparedStatement ps = conn.prepareStatement(query);
-            ps.setInt(1, id);
+            // get property id
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "SELECT property_id FROM sales WHERE sales_id=?"
+            );
+            ps1.setInt(1, id);
 
-            int rows = ps.executeUpdate();
+            ResultSet rs = ps1.executeQuery();
 
-            if (rows > 0) {
-                System.out.println("✅ Sale deleted!");
-            } else {
-                System.out.println("Sale not found!");
+            if (!rs.next()) {
+                System.out.println("❌ Sale not found!");
+                return;
             }
 
+            int propertyId = rs.getInt("property_id");
+
+            // delete sale
+            PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM sales WHERE sales_id=?"
+            );
+            ps.setInt(1, id);
+
+            ps.executeUpdate();
+
+            // restore property availability
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "UPDATE property SET availability_status=true WHERE property_id=?"
+            );
+            ps2.setInt(1, propertyId);
+            ps2.executeUpdate();
+
+            System.out.println("✅ Sale deleted and property restored");
+
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 
@@ -288,6 +257,177 @@ public class SalesService {
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
+        }
+    }
+    public static void RecordSale(){
+        try{
+            Connection conn = DBConnection.getConnection();
+            Scanner sc = new Scanner(System.in);
+
+            System.out.print("Enter Sales ID: ");
+            int salesId = sc.nextInt();
+
+            System.out.print("Enter Sales Price: ");
+            int salesPrice = sc.nextInt();
+
+            System.out.print("Enter Sales Date (YYYY-MM-DD): ");
+            String salesDate = sc.next();
+
+            System.out.print("Enter Buyer ID: ");
+            int buyerId = sc.nextInt();
+
+            System.out.print("Enter Seller ID: ");
+            int sellerId = sc.nextInt();
+
+            System.out.print("Enter Agent ID: ");
+            int agentId = sc.nextInt();
+
+            System.out.print("Enter Property ID: ");
+            int propertyId = sc.nextInt();
+
+            // 🔥 Check property availability
+            PreparedStatement check = conn.prepareStatement(
+                    "SELECT availability_status FROM property WHERE property_id=?"
+            );
+            check.setInt(1, propertyId);
+
+            ResultSet rs = check.executeQuery();
+
+            if (!rs.next()) {
+                System.out.println("❌ Property not found");
+                return;
+            }
+
+            if (!rs.getBoolean("availability_status")) {
+                System.out.println("❌ Property already sold/rented");
+                return;
+            }
+
+            // 🔥 Insert sale
+            String query = "INSERT INTO sales (sales_id, sales_price, sales_date, buyer_id, seller_id, agent_id, property_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            PreparedStatement ps = conn.prepareStatement(query);
+
+            ps.setInt(1, salesId);
+            ps.setInt(2, salesPrice);
+            ps.setString(3, salesDate);
+            ps.setInt(4, buyerId);
+            ps.setInt(5, sellerId);
+            ps.setInt(6, agentId);
+            ps.setInt(7, propertyId);
+
+            ps.executeUpdate();
+
+            // 🔥 Update property availability
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "UPDATE property SET availability_status=false WHERE property_id=?"
+            );
+            ps2.setInt(1, propertyId);
+            ps2.executeUpdate();
+
+            // 🔥 Update owner (IMPORTANT FIX)
+            PreparedStatement ps3 = conn.prepareStatement(
+                    "UPDATE property SET owner_id=? WHERE property_id=?"
+            );
+            ps3.setInt(1, buyerId);
+            ps3.setInt(2, propertyId);
+            ps3.executeUpdate();
+
+            System.out.println("✅ Sale recorded successfully!");
+
+        } catch (Exception e){
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+    public static void salesSummary() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String query = """
+            SELECT COUNT(*) AS total_sales,
+                   SUM(sales_price) AS total_revenue,
+                   AVG(sales_price) AS avg_price
+            FROM sales
+        """;
+
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            if (rs.next()) {
+                System.out.println("\n--- SALES SUMMARY ---");
+                System.out.println("Total Sales: " + rs.getInt("total_sales"));
+                System.out.println("Total Revenue: ₹" + rs.getInt("total_revenue"));
+                System.out.println("Average Sale Price: ₹" + rs.getInt("avg_price"));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void topBuyer() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String query = """
+            SELECT buyer_id, COUNT(*) AS total
+            FROM sales
+            GROUP BY buyer_id
+            ORDER BY total DESC
+            LIMIT 1
+        """;
+
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            if (rs.next()) {
+                int buyerId = rs.getInt("buyer_id");
+                int total = rs.getInt("total");
+
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT client_name FROM client WHERE client_id=?"
+                );
+                ps.setInt(1, buyerId);
+
+                ResultSet rs2 = ps.executeQuery();
+
+                if (rs2.next()) {
+                    System.out.println("🏆 Top Buyer: " +
+                            rs2.getString("client_name") +
+                            " (" + total + " purchases)");
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void salesByDateRange() {
+        try {
+            Connection conn = DBConnection.getConnection();
+            Scanner sc = new Scanner(System.in);
+
+            System.out.print("Enter Start Date (YYYY-MM-DD): ");
+            String start = sc.next();
+
+            System.out.print("Enter End Date (YYYY-MM-DD): ");
+            String end = sc.next();
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM sales WHERE sales_date BETWEEN ? AND ?"
+            );
+
+            ps.setString(1, start);
+            ps.setString(2, end);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                System.out.println(
+                        rs.getInt("sales_id") + " | " +
+                                rs.getInt("sales_price") + " | " +
+                                rs.getString("sales_date")
+                );
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 }

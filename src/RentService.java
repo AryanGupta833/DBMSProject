@@ -46,6 +46,25 @@ public class RentService {
             System.out.print("Enter Agent ID: ");
             int agentId = sc.nextInt();
 
+            // 🔥 Check availability
+            PreparedStatement check = conn.prepareStatement(
+                    "SELECT availability_status FROM property WHERE property_id=?"
+            );
+            check.setInt(1, propertyId);
+
+            ResultSet rs = check.executeQuery();
+
+            if (!rs.next()) {
+                System.out.println("❌ Property not found");
+                return;
+            }
+
+            if (!rs.getBoolean("availability_status")) {
+                System.out.println("❌ Property already occupied");
+                return;
+            }
+
+            // insert rent
             String q = "INSERT INTO rent VALUES (?,?,?,?,?,?,?)";
             PreparedStatement ps = conn.prepareStatement(q);
 
@@ -58,6 +77,14 @@ public class RentService {
             ps.setInt(7, agentId);
 
             ps.executeUpdate();
+
+            // 🔥 mark unavailable
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "UPDATE property SET availability_status=false WHERE property_id=?"
+            );
+            ps2.setInt(1, propertyId);
+            ps2.executeUpdate();
+
             System.out.println("✅ Rent Recorded Successfully");
 
         } catch (Exception e){
@@ -123,17 +150,36 @@ public class RentService {
             System.out.print("Enter Rent ID to delete: ");
             int id = sc.nextInt();
 
-            String q = "DELETE FROM rent WHERE rent_id=?";
-            PreparedStatement ps = conn.prepareStatement(q);
-            ps.setInt(1, id);
+            // get property id
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "SELECT property_id FROM rent WHERE rent_id=?"
+            );
+            ps1.setInt(1, id);
 
-            int rows = ps.executeUpdate();
+            ResultSet rs = ps1.executeQuery();
 
-            if(rows > 0){
-                System.out.println("✅ Deleted Successfully");
-            } else {
+            if (!rs.next()) {
                 System.out.println("❌ ID not found");
+                return;
             }
+
+            int propertyId = rs.getInt("property_id");
+
+            // delete
+            PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM rent WHERE rent_id=?"
+            );
+            ps.setInt(1, id);
+            ps.executeUpdate();
+
+            // 🔥 restore availability
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "UPDATE property SET availability_status=true WHERE property_id=?"
+            );
+            ps2.setInt(1, propertyId);
+            ps2.executeUpdate();
+
+            System.out.println("✅ Rent deleted and property available");
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -295,6 +341,95 @@ public class RentService {
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
+        }
+    }
+    public static void rentSummary() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String q = """
+            SELECT COUNT(*) AS total,
+                   SUM(rent_amount) AS total_rent,
+                   AVG(rent_amount) AS avg_rent
+            FROM rent
+        """;
+
+            ResultSet rs = conn.createStatement().executeQuery(q);
+
+            if (rs.next()) {
+                System.out.println("\n--- RENT SUMMARY ---");
+                System.out.println("Total Rentals: " + rs.getInt("total"));
+                System.out.println("Total Rent Collected: ₹" + rs.getInt("total_rent"));
+                System.out.println("Average Rent: ₹" + rs.getInt("avg_rent"));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void topTenant() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String q = """
+            SELECT tenant_id, COUNT(*) AS total
+            FROM rent
+            GROUP BY tenant_id
+            ORDER BY total DESC
+            LIMIT 1
+        """;
+
+            ResultSet rs = conn.createStatement().executeQuery(q);
+
+            if (rs.next()) {
+                int id = rs.getInt("tenant_id");
+                int total = rs.getInt("total");
+
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT client_name FROM client WHERE client_id=?"
+                );
+                ps.setInt(1, id);
+
+                ResultSet rs2 = ps.executeQuery();
+
+                if (rs2.next()) {
+                    System.out.println("🏆 Top Tenant: " +
+                            rs2.getString("client_name") +
+                            " (" + total + " rentals)");
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void rentByDateRange() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.print("Enter Start Date: ");
+            String start = sc.next();
+
+            System.out.print("Enter End Date: ");
+            String end = sc.next();
+
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM rent WHERE rent_start_date BETWEEN ? AND ?"
+            );
+
+            ps.setString(1, start);
+            ps.setString(2, end);
+
+            ResultSet rs = ps.executeQuery();
+
+            printHeader();
+
+            while (rs.next()) {
+                printRow(rs);
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 }
