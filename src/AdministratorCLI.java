@@ -3,17 +3,19 @@ public class AdministratorCLI {
     public static void main(String[] args) {
         while (true) {
             clearScreen();
-            printMenu("ADMIN PANEL", new String[]{
-                    "Client Management",
-                    "Agent Management",
-                    "Property Management",
+            showHeader();
+
+            printTableMenu("ADMIN PANEL", new String[]{
+                    "Clients",
+                    "Agents",
+                    "Property",
                     "Sales",
                     "Rent",
                     "Queries",
                     "Exit"
             });
 
-            int choice = InputUtil.getIntegerInput("Enter choice: ");
+            int choice = InputUtil.getIntegerInput("\n👉 Enter choice: ");
 
             switch (choice) {
                 case 1 -> clientMenu();
@@ -31,31 +33,66 @@ public class AdministratorCLI {
         }
     }
 
-    // ================= COMMON UI METHODS =================
-
-    public static void printMenu(String title, String[] options) {
-        System.out.println("\n========================================");
-        System.out.printf(" %-38s%n", title);
-        System.out.println("========================================");
-
-        for (int i = 0; i < options.length; i++) {
-            System.out.printf(" %d. %s%n", i + 1, options[i]);
-        }
-
-        System.out.println("========================================");
+    // ================= HEADER =================
+    public static void showHeader() {
+        System.out.println("==================================================");
+        System.out.println("        🏢 REAL ESTATE MANAGEMENT SYSTEM");
+        System.out.println("==================================================");
     }
 
+    // ================= 3 COLUMN TABLE MENU =================
+    public static void printTableMenu(String title, String[] options) {
+
+        int cols = 3;
+        int rows = (int) Math.ceil(options.length / (double) cols);
+
+        System.out.println("\n╔════════════════════════════════════════════════════════════╗");
+        System.out.printf("║ %-58s ║%n", "🔥 " + title);
+        System.out.println("╠════════════════════╦════════════════════╦════════════════════╣");
+
+        int index = 0;
+
+        for (int r = 0; r < rows; r++) {
+
+            String col1 = "", col2 = "", col3 = "";
+
+            if (index < options.length) {
+                col1 = (index + 1) + ". " + options[index++];
+            }
+            if (index < options.length) {
+                col2 = (index + 1) + ". " + options[index++];
+            }
+            if (index < options.length) {
+                col3 = (index + 1) + ". " + options[index++];
+            }
+
+            System.out.printf("║ %-18s ║ %-18s ║ %-18s ║%n", col1, col2, col3);
+        }
+
+        System.out.println("╚════════════════════╩════════════════════╩════════════════════╝");
+    }
+
+    // ================= CLEAR SCREEN =================
     public static void clearScreen() {
-        System.out.print("\033[H\033[2J");
-        System.out.flush();
+        try {
+            if (System.getProperty("os.name").contains("Windows")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (Exception e) {
+            System.out.println("Error clearing screen");
+        }
     }
 
     // ================= CLIENT MENU =================
-
     static void clientMenu() {
         while (true) {
             clearScreen();
-            printMenu("CLIENT MENU", new String[]{
+            showHeader();
+
+            printTableMenu("CLIENT MENU", new String[]{
                     "Add Client",
                     "View Clients",
                     "Find Client by ID",
@@ -73,7 +110,7 @@ public class AdministratorCLI {
                     "Back"
             });
 
-            int choice = InputUtil.getIntegerInput("Enter choice: ");
+            int choice = InputUtil.getIntegerInput("\n👉 Enter choice: ");
 
             switch (choice) {
                 case 1 -> ClientService.addClient();
@@ -97,11 +134,12 @@ public class AdministratorCLI {
     }
 
     // ================= AGENT MENU =================
-
     static void agentMenu() {
         while (true) {
             clearScreen();
-            printMenu("AGENT MENU", new String[]{
+            showHeader();
+
+            printTableMenu("AGENT MENU", new String[]{
                     "Add Agent",
                     "View Agents",
                     "Find Agent by ID",
@@ -116,7 +154,7 @@ public class AdministratorCLI {
                     "Back"
             });
 
-            int choice = InputUtil.getIntegerInput("Enter choice: ");
+            int choice = InputUtil.getIntegerInput("\n👉 Enter choice: ");
 
             switch (choice) {
                 case 1 -> AgentService.addAgent();
@@ -137,11 +175,12 @@ public class AdministratorCLI {
     }
 
     // ================= PROPERTY MENU =================
-
     static void propertyMenu() {
         while (true) {
             clearScreen();
-            printMenu("PROPERTY MENU", new String[]{
+            showHeader();
+
+            printTableMenu("PROPERTY MENU", new String[]{
                     "Add Property",
                     "View Properties",
                     "Update Availability",
@@ -160,7 +199,7 @@ public class AdministratorCLI {
                     "Back"
             });
 
-            int choice = InputUtil.getIntegerInput("Enter choice: ");
+            int choice = InputUtil.getIntegerInput("\n👉 Enter choice: ");
 
             switch (choice) {
                 case 1 -> PropertyService.addProperty();
@@ -185,11 +224,12 @@ public class AdministratorCLI {
     }
 
     // ================= SALES MENU =================
-
     static void salesMenu() {
         while (true) {
             clearScreen();
-            printMenu("SALES MENU", new String[]{
+            showHeader();
+
+            printTableMenu("SALES MENU", new String[]{
                     "Record Sale",
                     "View Sales",
                     "Find Sale by ID",
@@ -204,7 +244,7 @@ public class AdministratorCLI {
                     "Back"
             });
 
-            int choice = InputUtil.getIntegerInput("Enter choice: ");
+            int choice = InputUtil.getIntegerInput("\n👉 Enter choice: ");
 
             switch (choice) {
                 case 1 -> SalesService.RecordSale();
@@ -225,11 +265,12 @@ public class AdministratorCLI {
     }
 
     // ================= RENT MENU =================
-
     static void rentMenu() {
         while (true) {
             clearScreen();
-            printMenu("RENT MENU", new String[]{
+            showHeader();
+
+            printTableMenu("RENT MENU", new String[]{
                     "Record Rent",
                     "View Rent Records",
                     "Find Rent by ID",
@@ -244,7 +285,7 @@ public class AdministratorCLI {
                     "Back"
             });
 
-            int choice = InputUtil.getIntegerInput("Enter choice: ");
+            int choice = InputUtil.getIntegerInput("\n👉 Enter choice: ");
 
             switch (choice) {
                 case 1 -> RentService.recordRent();
@@ -265,21 +306,22 @@ public class AdministratorCLI {
     }
 
     // ================= QUERY MENU =================
-
     static void queryMenu() {
         while (true) {
             clearScreen();
-            printMenu("QUERY MENU", new String[]{
-                    "Houses in city after 2023 available for rent",
-                    "Houses between 20L and 60L",
-                    "2BHK rent under 15000 in locality",
-                    "Top selling agent in 2023",
-                    "Average selling price & market time",
-                    "Most expensive & highest rent houses",
+            showHeader();
+
+            printTableMenu("QUERY DASHBOARD", new String[]{
+                    "Rent Houses (2023+)",
+                    "Price 20L–60L",
+                    "2BHK < ₹15000",
+                    "Top Agent",
+                    "Avg Price & Time",
+                    "Premium Houses",
                     "Back"
             });
 
-            int choice = InputUtil.getIntegerInput("Enter choice: ");
+            int choice = InputUtil.getIntegerInput("\n👉 Enter choice: ");
 
             switch (choice) {
                 case 1 -> QueryService.query1();
