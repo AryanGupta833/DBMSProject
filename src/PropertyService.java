@@ -439,18 +439,19 @@ public class PropertyService {
             Connection conn = DBConnection.getConnection();
 
             String query = """
-                    SELECT p.property_id, pt.price
-                    FROM property p
-                    JOIN property_type pt ON p.property_id = pt.property_id
-                    ORDER BY pt.price DESC
-                    """;
+                SELECT p.property_id, p.city, p.locality,
+                       p.size_sqft, p.bedrooms,
+                       p.availability_status, pt.listing_type,
+                       pt.price
+                FROM property p
+                LEFT JOIN property_type pt
+                ON p.property_id = pt.property_id
+                ORDER BY pt.price DESC
+                """;
 
             ResultSet rs = conn.createStatement().executeQuery(query);
 
-            while (rs.next()) {
-                System.out.println("Property " + rs.getInt("property_id") +
-                        " → " + rs.getInt("price"));
-            }
+            printPropertyTable(rs);
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
@@ -461,15 +462,20 @@ public class PropertyService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            ResultSet rs = conn.createStatement()
-                    .executeQuery("SELECT * FROM property ORDER BY size_sqft DESC");
+            String query = """
+                SELECT p.property_id, p.city, p.locality,
+                       p.size_sqft, p.bedrooms,
+                       p.availability_status, pt.listing_type,
+                       pt.price
+                FROM property p
+                LEFT JOIN property_type pt
+                ON p.property_id = pt.property_id
+                ORDER BY p.size_sqft DESC
+                """;
 
-            while (rs.next()) {
-                System.out.println(
-                        rs.getString("address") + " - " +
-                                rs.getInt("size_sqft") + " sqft"
-                );
-            }
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            printPropertyTable(rs);
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());

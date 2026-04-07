@@ -1,6 +1,3 @@
-
-import com.mysql.cj.x.protobuf.MysqlxDatatypes;
-
 import java.sql.Connection;
 import java.sql.DriverManager;
 

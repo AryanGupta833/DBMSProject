@@ -33,18 +33,15 @@ public class AdministratorCLI {
         }
     }
 
-    // ================= HEADER =================
     public static void showHeader() {
         System.out.println("\n==============================================================");
         System.out.println("            REAL ESTATE MANAGEMENT SYSTEM");
         System.out.println("==============================================================");
     }
 
-    // ================= STABLE 3-COLUMN TABLE =================
     public static void printTableMenu(String title, String[] options) {
         int cols = 3;
 
-        // 1. Find max length to ensure all columns fit the longest text
         int maxLen = title.length();
         for (int i = 0; i < options.length; i++) {
             String text = (i + 1) + ". " + options[i];
@@ -53,22 +50,17 @@ public class AdministratorCLI {
             }
         }
 
-        // 2. Calculate Exact Widths (+2 for padding)
         int colWidth = maxLen + 2;
         int totalInnerWidth = (colWidth * cols) + (cols - 1);
 
-        // 3. Draw Top Border
         System.out.println("╔" + "═".repeat(totalInnerWidth) + "╗");
 
-        // 4. Draw Centered Title
         System.out.printf("║%-" + totalInnerWidth + "s║%n", centerText(title, totalInnerWidth));
 
-        // 5. Draw Middle Divider
         System.out.println("╠" + "═".repeat(colWidth) + "╦"
                 + "═".repeat(colWidth) + "╦"
                 + "═".repeat(colWidth) + "╣");
 
-        // 6. Draw Content Rows
         int index = 0;
         int rows = (int) Math.ceil(options.length / (double) cols);
 
@@ -87,19 +79,16 @@ public class AdministratorCLI {
                     row[0], row[1], row[2]);
         }
 
-        // 7. Draw Bottom Border
         System.out.println("╚" + "═".repeat(colWidth) + "╩"
                 + "═".repeat(colWidth) + "╩"
                 + "═".repeat(colWidth) + "╝");
     }
 
-    // ================= CENTER TEXT =================
     public static String centerText(String text, int width) {
         int padding = (width - text.length()) / 2;
         return " ".repeat(Math.max(0, padding)) + text;
     }
 
-    // ================= CLEAR SCREEN =================
     public static void clearScreen() {
         try {
             if (System.getProperty("os.name").toLowerCase().contains("win")) {
@@ -113,7 +102,6 @@ public class AdministratorCLI {
         }
     }
 
-    // ================= CLIENT MENU =================
     static void clientMenu() {
         while (true) {
             clearScreen();
@@ -159,7 +147,6 @@ public class AdministratorCLI {
         }
     }
 
-    // ================= AGENT MENU =================
     static void agentMenu() {
         while (true) {
             clearScreen();
@@ -199,7 +186,6 @@ public class AdministratorCLI {
         }
     }
 
-    // ================= PROPERTY MENU =================
     static void propertyMenu() {
         while (true) {
             clearScreen();
@@ -247,7 +233,6 @@ public class AdministratorCLI {
         }
     }
 
-    // ================= SALES MENU =================
     static void salesMenu() {
         while (true) {
             clearScreen();
@@ -287,7 +272,6 @@ public class AdministratorCLI {
         }
     }
 
-    // ================= RENT MENU =================
     static void rentMenu() {
         while (true) {
             clearScreen();

@@ -95,27 +95,69 @@ public class AgentService {
 
             int id = InputUtil.getPositiveInt("Enter Agent ID");
 
-            String name = InputUtil.getStringInput("New Name");
-            String phone = InputUtil.getPhone("New Phone");
-            String email = InputUtil.getEmail("New Email");
-            int exp = InputUtil.getPositiveInt("New Experience");
+            while (true) {
+                System.out.println("\n--- Update Menu ---");
+                System.out.println("1. Update Name");
+                System.out.println("2. Update Phone");
+                System.out.println("3. Update Email");
+                System.out.println("4. Update Experience");
+                System.out.println("5. Exit");
 
-            PreparedStatement ps = conn.prepareStatement(
-                    "UPDATE agent SET name=?, phone=?, email=?, experience_year=? WHERE agent_id=?"
-            );
+                int choice = InputUtil.getPositiveInt("Enter choice");
 
-            ps.setString(1, name);
-            ps.setString(2, phone);
-            ps.setString(3, email);
-            ps.setInt(4, exp);
-            ps.setInt(5, id);
+                if (choice == 5) {
+                    System.out.println("Exiting update...");
+                    break;
+                }
 
-            int rows = ps.executeUpdate();
+                String query = "";
+                PreparedStatement ps = null;
 
-            if (rows > 0)
-                System.out.println("✅ Updated successfully");
-            else
-                System.out.println("❌ Agent not found");
+                switch (choice) {
+                    case 1:
+                        String name = InputUtil.getStringInput("New Name");
+                        query = "UPDATE agent SET name=? WHERE agent_id=?";
+                        ps = conn.prepareStatement(query);
+                        ps.setString(1, name);
+                        ps.setInt(2, id);
+                        break;
+
+                    case 2:
+                        String phone = InputUtil.getPhone("New Phone");
+                        query = "UPDATE agent SET phone=? WHERE agent_id=?";
+                        ps = conn.prepareStatement(query);
+                        ps.setString(1, phone);
+                        ps.setInt(2, id);
+                        break;
+
+                    case 3:
+                        String email = InputUtil.getEmail("New Email");
+                        query = "UPDATE agent SET email=? WHERE agent_id=?";
+                        ps = conn.prepareStatement(query);
+                        ps.setString(1, email);
+                        ps.setInt(2, id);
+                        break;
+
+                    case 4:
+                        int exp = InputUtil.getPositiveInt("New Experience");
+                        query = "UPDATE agent SET experience_year=? WHERE agent_id=?";
+                        ps = conn.prepareStatement(query);
+                        ps.setInt(1, exp);
+                        ps.setInt(2, id);
+                        break;
+
+                    default:
+                        System.out.println("Invalid choice");
+                        continue;
+                }
+
+                int rows = ps.executeUpdate();
+
+                if (rows > 0)
+                    System.out.println("✅ Updated successfully");
+                else
+                    System.out.println("❌ Agent not found");
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
