@@ -32,7 +32,6 @@ public class PropertyService {
 
             ps.executeUpdate();
 
-            // ALSO insert into property_type
             String type = InputUtil.getStringInput("Enter Listing Type (Sale/Rent)");
             int price = InputUtil.getPositiveInt("Enter Price");
 
@@ -149,7 +148,6 @@ public class PropertyService {
                 System.out.println("Agent ID: " + rs.getInt("agent_id"));
                 System.out.println("Owner ID: " + rs.getInt("owner_id"));
 
-                // from property_type
                 System.out.println("Listing Type: " + rs.getString("listing_type"));
                 System.out.println("Price: " + rs.getInt("price"));
 
@@ -233,7 +231,6 @@ public class PropertyService {
                     }
                 }
 
-                // common execution
                 if (ps != null) {
                     ps.setInt(2, id);
                     int rows = ps.executeUpdate();
@@ -256,7 +253,6 @@ public class PropertyService {
 
             int id = InputUtil.getPositiveInt("Enter Property ID");
 
-            // 🔍 Step 1: Check in sales
             PreparedStatement checkSales = conn.prepareStatement(
                     "SELECT 1 FROM sales WHERE property_id=?"
             );
@@ -268,7 +264,6 @@ public class PropertyService {
                 return;
             }
 
-            // 🔍 Step 2: Check in rent
             PreparedStatement checkRent = conn.prepareStatement(
                     "SELECT 1 FROM rent WHERE property_id=?"
             );
@@ -280,7 +275,6 @@ public class PropertyService {
                 return;
             }
 
-            // ✅ Step 3: Safe to delete
             PreparedStatement ps = conn.prepareStatement(
                     "DELETE FROM property WHERE property_id=?"
             );

@@ -327,7 +327,6 @@ public class AdministratorCLI {
         }
     }
 
-    // ================= QUERY MENU =================
     static void queryMenu() {
         while (true) {
             clearScreen();

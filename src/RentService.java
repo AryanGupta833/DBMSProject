@@ -4,14 +4,12 @@ import java.util.Scanner;
 public class RentService {
     static Scanner sc = new Scanner(System.in);
 
-    // ✅ COMMON TABLE HEADER
     static void printHeader() {
         System.out.printf("\n%-8s %-12s %-12s %-12s %-10s %-12s %-10s%n",
                 "ID","Amount","Start","End","Tenant","Property","Agent");
         System.out.println("--------------------------------------------------------------------------");
     }
 
-    // ✅ COMMON ROW PRINTER
     static void printRow(ResultSet rs) throws Exception {
         System.out.printf("%-8d %-12d %-12s %-12s %-10d %-12d %-10d%n",
                 rs.getInt("rent_id"),
@@ -23,7 +21,6 @@ public class RentService {
                 rs.getInt("agent_id"));
     }
 
-    // ✅ INSERT
     public static void recordRent(){
         try{
             Connection conn = DBConnection.getConnection();
@@ -68,7 +65,6 @@ public class RentService {
         }
     }
 
-    // ✅ VIEW ALL
     public static void viewRent(){
         try{
             Connection conn = DBConnection.getConnection();
@@ -94,7 +90,6 @@ public class RentService {
         }
     }
 
-    // ✅ FIND BY ID (FIXED: TABLE FORMAT)
     public static void findRentById() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -121,7 +116,6 @@ public class RentService {
         }
     }
 
-    // ✅ DELETE
     public static void deleteRent() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -146,7 +140,6 @@ public class RentService {
         }
     }
 
-    // ✅ FILTER BY DATE
     public static void filterRentByDate() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -177,7 +170,6 @@ public class RentService {
         }
     }
 
-    // ✅ FILTER BY CLIENT
     public static void filterRentByClient() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -208,7 +200,6 @@ public class RentService {
         }
     }
 
-    // ✅ FILTER BY PROPERTY
     public static void filterRentByProperty() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -239,7 +230,6 @@ public class RentService {
         }
     }
 
-    // ✅ TOTAL RENT
     public static void totalRentAmount() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -256,7 +246,6 @@ public class RentService {
         }
     }
 
-    // ✅ COUNT
     public static void countRents() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -273,7 +262,6 @@ public class RentService {
         }
     }
 
-    // ✅ SORT BY AMOUNT
     public static void sortRentByAmount() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -292,7 +280,6 @@ public class RentService {
         }
     }
 
-    // ✅ SORT BY DATE
     public static void sortRentByDate() {
         try {
             Connection conn = DBConnection.getConnection();

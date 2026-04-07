@@ -65,7 +65,6 @@ public class ClientService {
 
             int clientId = InputUtil.getPositiveInt("Enter Client ID");
 
-            // 🔒 Role validation loop
             String role;
             while (true) {
                 role = InputUtil.getStringInput("Enter Role (Buyer/Seller/Tenant)");
@@ -74,7 +73,6 @@ public class ClientService {
                         role.equalsIgnoreCase("Seller") ||
                         role.equalsIgnoreCase("Tenant")) {
 
-                    // normalize (store consistent format)
                     role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
                     break;
                 } else {
@@ -82,7 +80,6 @@ public class ClientService {
                 }
             }
 
-            // 🔍 Check if role already exists
             PreparedStatement check = conn.prepareStatement(
                     "SELECT 1 FROM client_role WHERE client_id=? AND role=?"
             );
@@ -96,7 +93,6 @@ public class ClientService {
                 return;
             }
 
-            // ✅ Insert role
             PreparedStatement ps = conn.prepareStatement(
                     "INSERT INTO client_role VALUES (?, ?)"
             );
@@ -372,7 +368,6 @@ public class ClientService {
                         role.equalsIgnoreCase("Seller") ||
                         role.equalsIgnoreCase("Tenant")) {
 
-                    // normalize (store consistent format)
                     role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
                     break;
                 } else {

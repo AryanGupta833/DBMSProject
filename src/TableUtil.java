@@ -6,7 +6,6 @@ public class TableUtil {
     public static void printTable(List<String> headers, List<List<String>> rows) {
         int[] colWidths = new int[headers.size()];
 
-        // Calculate max width for each column
         for (int i = 0; i < headers.size(); i++) {
             colWidths[i] = headers.get(i).length();
         }
@@ -17,11 +16,9 @@ public class TableUtil {
             }
         }
 
-        // for printing headerss
         printRow(headers, colWidths);
         printSeparator(colWidths);
 
-        // for rows printing
         for (List<String> row : rows) {
             printRow(row, colWidths);
         }

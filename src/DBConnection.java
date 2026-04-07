@@ -1,11 +1,13 @@
 
+import com.mysql.cj.x.protobuf.MysqlxDatatypes;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class DBConnection {
-    static final String url="jdbc:mysql://localhost:3306/project3";
+    static final String url="jdbc:mysql://localhost:3307/project";
     static final String user="root";
-    static final String password="hit@123";
+    static final String password="Password";
 
     public static Connection getConnection() throws Exception {
         Class.forName("com.mysql.cj.jdbc.Driver");

@@ -44,7 +44,6 @@ public class SalesService {
 
             ps.executeUpdate();
 
-            // Update property availability
             String updateQuery = "UPDATE property SET availability_status = false WHERE property_id = ?";
             PreparedStatement ps2 = conn.prepareStatement(updateQuery);
             ps2.setInt(1, propertyId);
