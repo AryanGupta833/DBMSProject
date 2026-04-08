@@ -170,7 +170,6 @@ public class AgentService {
 
             int id = InputUtil.getPositiveInt("Enter Agent ID");
 
-            // check property
             PreparedStatement ps1 = conn.prepareStatement(
                     "SELECT 1 FROM property WHERE agent_id=?"
             );
@@ -181,7 +180,6 @@ public class AgentService {
                 return;
             }
 
-            // check sales
             PreparedStatement ps2 = conn.prepareStatement(
                     "SELECT 1 FROM sales WHERE agent_id=?"
             );
@@ -192,7 +190,6 @@ public class AgentService {
                 return;
             }
 
-            // check rent
             PreparedStatement ps3 = conn.prepareStatement(
                     "SELECT 1 FROM rent WHERE agent_id=?"
             );
@@ -203,7 +200,6 @@ public class AgentService {
                 return;
             }
 
-            // delete
             PreparedStatement ps = conn.prepareStatement(
                     "DELETE FROM agent WHERE agent_id=?"
             );
