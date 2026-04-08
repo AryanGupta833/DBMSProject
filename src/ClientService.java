@@ -211,29 +211,6 @@ public class ClientService {
         }
     }
 
-    public static void deleteClient() {
-        try {
-            Connection conn = DBConnection.getConnection();
-
-            int id = InputUtil.getPositiveInt("Enter Client ID");
-
-            PreparedStatement ps = conn.prepareStatement(
-                    "DELETE FROM client WHERE client_id=?");
-
-            ps.setInt(1, id);
-
-            int rows = ps.executeUpdate();
-
-            if (rows > 0)
-                System.out.println("✅ Deleted successfully");
-            else
-                System.out.println("❌ Client not found");
-
-        } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
-        }
-    }
-
     public static void searchClientByName() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -495,6 +472,209 @@ public class ClientService {
                 System.out.println("✅ Client exists");
             else
                 System.out.println("❌ Client does not exist");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void viewClientWithRoles() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String query = """
+            SELECT c.client_id, c.client_name, cr.role
+            FROM client c
+            LEFT JOIN client_role cr ON c.client_id = cr.client_id
+            ORDER BY c.client_id
+        """;
+
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            Map<Integer, List<String>> map = new LinkedHashMap<>();
+
+            while (rs.next()) {
+                int id = rs.getInt("client_id");
+                String name = rs.getString("client_name");
+                String role = rs.getString("role");
+
+                map.putIfAbsent(id, new ArrayList<>());
+                if (role != null) map.get(id).add(role);
+
+                map.get(id).add(0, name); // store name at index 0
+            }
+
+            for (var entry : map.entrySet()) {
+                List<String> data = entry.getValue();
+                String name = data.get(0);
+                List<String> roles = data.subList(1, data.size());
+
+                System.out.println(name + " → " +
+                        (roles.isEmpty() ? "No Role" : String.join(", ", roles)));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void viewClientTransactions() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Client ID");
+
+            System.out.println("\n--- PURCHASES ---");
+
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "SELECT property_id, sales_price, sales_date FROM sales WHERE buyer_id=?"
+            );
+            ps1.setInt(1, id);
+
+            ResultSet rs1 = ps1.executeQuery();
+
+            boolean found = false;
+
+            while (rs1.next()) {
+                found = true;
+                System.out.println(
+                        "Property: " + rs1.getInt("property_id") +
+                                ", Price: " + rs1.getInt("sales_price") +
+                                ", Date: " + rs1.getString("sales_date")
+                );
+            }
+
+            if (!found) System.out.println("No purchases found");
+
+            System.out.println("\n--- RENTALS ---");
+
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "SELECT property_id, rent_amount, rent_start_date FROM rent WHERE tenant_id=?"
+            );
+            ps2.setInt(1, id);
+
+            ResultSet rs2 = ps2.executeQuery();
+
+            found = false;
+
+            while (rs2.next()) {
+                found = true;
+                System.out.println(
+                        "Property: " + rs2.getInt("property_id") +
+                                ", Rent: " + rs2.getInt("rent_amount") +
+                                ", Start: " + rs2.getString("rent_start_date")
+                );
+            }
+
+            if (!found) System.out.println("No rentals found");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void deleteClient() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Client ID");
+
+            // check sales
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "SELECT 1 FROM sales WHERE buyer_id=? OR seller_id=?"
+            );
+            ps1.setInt(1, id);
+            ps1.setInt(2, id);
+
+            if (ps1.executeQuery().next()) {
+                System.out.println("❌ Cannot delete: Client involved in sales");
+                return;
+            }
+
+            // check rent
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "SELECT 1 FROM rent WHERE tenant_id=?"
+            );
+            ps2.setInt(1, id);
+
+            if (ps2.executeQuery().next()) {
+                System.out.println("❌ Cannot delete: Client involved in rent");
+                return;
+            }
+
+            // delete
+            PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM client WHERE client_id=?"
+            );
+            ps.setInt(1, id);
+
+            int rows = ps.executeUpdate();
+
+            if (rows > 0)
+                System.out.println("✅ Deleted successfully");
+            else
+                System.out.println("❌ Client not found");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void clientSummary() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int id = InputUtil.getPositiveInt("Enter Client ID");
+
+            // name
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "SELECT client_name FROM client WHERE client_id=?"
+            );
+            ps1.setInt(1, id);
+
+            ResultSet rs1 = ps1.executeQuery();
+
+            if (!rs1.next()) {
+                System.out.println("❌ Client not found");
+                return;
+            }
+
+            String name = rs1.getString("client_name");
+
+            // roles
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "SELECT role FROM client_role WHERE client_id=?"
+            );
+            ps2.setInt(1, id);
+
+            ResultSet rs2 = ps2.executeQuery();
+            List<String> roles = new ArrayList<>();
+
+            while (rs2.next()) {
+                roles.add(rs2.getString("role"));
+            }
+
+            // purchases
+            PreparedStatement ps3 = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM sales WHERE buyer_id=?"
+            );
+            ps3.setInt(1, id);
+
+            ResultSet rs3 = ps3.executeQuery();
+            rs3.next();
+            int purchases = rs3.getInt(1);
+
+            // rentals
+            PreparedStatement ps4 = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM rent WHERE tenant_id=?"
+            );
+            ps4.setInt(1, id);
+
+            ResultSet rs4 = ps4.executeQuery();
+            rs4.next();
+            int rentals = rs4.getInt(1);
+
+            System.out.println("\n--- CLIENT SUMMARY ---");
+            System.out.println("Name: " + name);
+            System.out.println("Roles: " + (roles.isEmpty() ? "None" : String.join(", ", roles)));
+            System.out.println("Total Purchases: " + purchases);
+            System.out.println("Total Rentals: " + rentals);
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());

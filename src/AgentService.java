@@ -170,9 +170,43 @@ public class AgentService {
 
             int id = InputUtil.getPositiveInt("Enter Agent ID");
 
-            PreparedStatement ps = conn.prepareStatement(
-                    "DELETE FROM agent WHERE agent_id=?");
+            // check property
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "SELECT 1 FROM property WHERE agent_id=?"
+            );
+            ps1.setInt(1, id);
 
+            if (ps1.executeQuery().next()) {
+                System.out.println("❌ Cannot delete: Agent assigned to properties");
+                return;
+            }
+
+            // check sales
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "SELECT 1 FROM sales WHERE agent_id=?"
+            );
+            ps2.setInt(1, id);
+
+            if (ps2.executeQuery().next()) {
+                System.out.println("❌ Cannot delete: Agent involved in sales");
+                return;
+            }
+
+            // check rent
+            PreparedStatement ps3 = conn.prepareStatement(
+                    "SELECT 1 FROM rent WHERE agent_id=?"
+            );
+            ps3.setInt(1, id);
+
+            if (ps3.executeQuery().next()) {
+                System.out.println("❌ Cannot delete: Agent involved in rent");
+                return;
+            }
+
+            // delete
+            PreparedStatement ps = conn.prepareStatement(
+                    "DELETE FROM agent WHERE agent_id=?"
+            );
             ps.setInt(1, id);
 
             int rows = ps.executeUpdate();
@@ -311,6 +345,166 @@ public class AgentService {
                 System.out.println("✅ Agent exists");
             else
                 System.out.println("❌ Agent does not exist");
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void agentPerformance() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+
+            PreparedStatement ps = conn.prepareStatement("""
+            SELECT 
+                (SELECT COUNT(*) FROM sales WHERE agent_id=?) +
+                (SELECT COUNT(*) FROM rent WHERE agent_id=?) AS total_deals
+        """);
+
+            ps.setInt(1, agentId);
+            ps.setInt(2, agentId);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("Total Deals Handled: " + rs.getInt("total_deals"));
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void agentSummary() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+
+            // basic info
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "SELECT name, experience_year FROM agent WHERE agent_id=?"
+            );
+            ps1.setInt(1, agentId);
+
+            ResultSet rs1 = ps1.executeQuery();
+
+            if (!rs1.next()) {
+                System.out.println("❌ Agent not found");
+                return;
+            }
+
+            String name = rs1.getString("name");
+            int exp = rs1.getInt("experience_year");
+
+            // properties managed
+            PreparedStatement ps2 = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM property WHERE agent_id=?"
+            );
+            ps2.setInt(1, agentId);
+            ResultSet rs2 = ps2.executeQuery();
+            rs2.next();
+            int properties = rs2.getInt(1);
+
+            // sales
+            PreparedStatement ps3 = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM sales WHERE agent_id=?"
+            );
+            ps3.setInt(1, agentId);
+            ResultSet rs3 = ps3.executeQuery();
+            rs3.next();
+            int sales = rs3.getInt(1);
+
+            // rentals
+            PreparedStatement ps4 = conn.prepareStatement(
+                    "SELECT COUNT(*) FROM rent WHERE agent_id=?"
+            );
+            ps4.setInt(1, agentId);
+            ResultSet rs4 = ps4.executeQuery();
+            rs4.next();
+            int rentals = rs4.getInt(1);
+
+            System.out.println("\n--- AGENT SUMMARY ---");
+            System.out.println("Name: " + name);
+            System.out.println("Experience: " + exp + " years");
+            System.out.println("Properties Managed: " + properties);
+            System.out.println("Total Sales: " + sales);
+            System.out.println("Total Rentals: " + rentals);
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void topAgent() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String query = """
+            SELECT agent_id, COUNT(*) AS total
+            FROM (
+                SELECT agent_id FROM sales
+                UNION ALL
+                SELECT agent_id FROM rent
+            ) AS deals
+            GROUP BY agent_id
+            ORDER BY total DESC
+            LIMIT 1
+        """;
+
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            if (rs.next()) {
+                int agentId = rs.getInt("agent_id");
+                int total = rs.getInt("total");
+
+                PreparedStatement ps = conn.prepareStatement(
+                        "SELECT name FROM agent WHERE agent_id=?"
+                );
+                ps.setInt(1, agentId);
+
+                ResultSet rs2 = ps.executeQuery();
+
+                if (rs2.next()) {
+                    System.out.println("🏆 Top Agent: " +
+                            rs2.getString("name") +
+                            " (" + total + " deals)");
+                }
+            } else {
+                System.out.println("❌ No data found");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+    public static void viewAgentProperties() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+
+            PreparedStatement ps = conn.prepareStatement("""
+            SELECT p.property_id, p.city, pt.listing_type, pt.price
+            FROM property p
+            LEFT JOIN property_type pt ON p.property_id = pt.property_id
+            WHERE p.agent_id=?
+        """);
+
+            ps.setInt(1, agentId);
+
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                System.out.println(
+                        "Property " + rs.getInt("property_id") +
+                                " | " + rs.getString("city") +
+                                " | " + rs.getString("listing_type") +
+                                " | ₹" + rs.getInt("price")
+                );
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
