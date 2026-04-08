@@ -411,7 +411,6 @@ public class AdministratorCLI {
                 System.out.println("❌ Error: " + e.getMessage());
             }
 
-            // 🔥 IMPORTANT → pause so user can see output
             System.out.println("\nPress Enter to continue...");
             InputUtil.sc.nextLine();
         }
