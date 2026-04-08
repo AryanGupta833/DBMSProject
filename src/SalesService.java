@@ -41,34 +41,99 @@ public class SalesService {
             System.out.println("Error: " + e.getMessage());
         }
     }
+    public static void topBuyerInfo() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            // One query to rule them all: Join client, sales, and property
+            String query = """
+            SELECT 
+                c.client_id, 
+                c.client_name, 
+                c.client_email, 
+                c.client_phone, 
+                c.client_address,
+                COUNT(s.sales_id) AS total_purchases,
+                SUM(s.sales_price) AS total_investment,
+                (SELECT city FROM property p 
+                 JOIN sales s2 ON p.property_id = s2.property_id 
+                 WHERE s2.buyer_id = c.client_id 
+                 GROUP BY city ORDER BY COUNT(*) DESC LIMIT 1) AS favorite_city
+            FROM client c
+            JOIN sales s ON c.client_id = s.buyer_id
+            GROUP BY c.client_id
+            ORDER BY total_purchases DESC, total_investment DESC
+            LIMIT 1
+        """;
+
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            if (rs.next()) {
+                System.out.println("==========================================");
+                System.out.println(" TOP BUYER PROFILE");
+                System.out.println("==========================================");
+                System.out.println("Name:           " + rs.getString("client_name"));
+                System.out.println("Client ID:      " + rs.getInt("client_id"));
+                System.out.println("Contact:        " + rs.getString("client_email"));
+                System.out.println("Phone:          " + rs.getString("client_phone"));
+                System.out.println("Home Location:  " + rs.getString("client_address"));
+                System.out.println("------------------------------------------");
+                System.out.println("Total Purchases: " + rs.getInt("total_purchases"));
+                System.out.println("Total Invested:  ₹" + rs.getLong("total_investment"));
+                System.out.println("Preferred City: " + rs.getString("favorite_city"));
+                System.out.println("==========================================");
+            } else {
+                System.out.println("No sales data found.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Database Error: " + e.getMessage());
+        }
+    }
 
     public static void findSaleById() {
         try {
             Connection conn = DBConnection.getConnection();
-            Scanner sc = new Scanner(System.in);
 
             System.out.print("Enter Sales ID: ");
-            int id = sc.nextInt();
+            int id = InputUtil.sc.nextInt();
 
-            String query = "SELECT * FROM sales WHERE sales_id = ?";
+            String query =
+                    "SELECT s.sales_id, s.sales_price, s.sales_date, " +
+                            "b.client_name AS buyer, " +
+                            "se.client_name AS seller, " +
+                            "a.name AS agent, " +
+                            "p.address " +
+                            "FROM sales s " +
+                            "JOIN client b ON s.buyer_id = b.client_id " +
+                            "JOIN client se ON s.seller_id = se.client_id " +
+                            "JOIN agent a ON s.agent_id = a.agent_id " +
+                            "JOIN property p ON s.property_id = p.property_id " +
+                            "WHERE s.sales_id = ?";
+
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setInt(1, id);
 
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                System.out.println("ID: " + rs.getInt("sales_id"));
-                System.out.println("Price: " + rs.getInt("sales_price"));
-                System.out.println("Date: " + rs.getString("sales_date"));
+                System.out.println("\n========== SALE DETAILS ==========");
+                System.out.println("ID       : " + rs.getInt("sales_id"));
+                System.out.println("Price    : " + rs.getInt("sales_price"));
+                System.out.println("Date     : " + rs.getString("sales_date"));
+                System.out.println("Buyer    : " + rs.getString("buyer"));
+                System.out.println("Seller   : " + rs.getString("seller"));
+                System.out.println("Agent    : " + rs.getString("agent"));
+                System.out.println("Property : " + rs.getString("address"));
+                System.out.println("=================================");
             } else {
-                System.out.println("Sale not found!");
+                System.out.println(" Sale not found!");
             }
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
-
     public static void deleteSale() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -86,13 +151,13 @@ public class SalesService {
             ResultSet rs = ps1.executeQuery();
 
             if (!rs.next()) {
-                System.out.println("❌ Sale not found!");
+                System.out.println("Sale not found!");
                 return;
             }
 
             int propertyId = rs.getInt("property_id");
 
-            // delete sale
+
             PreparedStatement ps = conn.prepareStatement(
                     "DELETE FROM sales WHERE sales_id=?"
             );
@@ -100,20 +165,18 @@ public class SalesService {
 
             ps.executeUpdate();
 
-            // restore property availability
             PreparedStatement ps2 = conn.prepareStatement(
                     "UPDATE property SET availability_status=true WHERE property_id=?"
             );
             ps2.setInt(1, propertyId);
             ps2.executeUpdate();
 
-            System.out.println("✅ Sale deleted and property restored");
+            System.out.println(" Sale deleted and property restored");
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
     }
-
     public static void filterSalesByDate() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -122,50 +185,122 @@ public class SalesService {
             System.out.print("Enter Date (YYYY-MM-DD): ");
             String date = sc.next();
 
-            String query = "SELECT * FROM sales WHERE sales_date = ?";
+            String query = """
+        SELECT 
+            s.sales_id, 
+            s.sales_price, 
+            s.sales_date,
+            p.address,
+            p.city,
+            a.name AS agent_name,
+            c.client_name AS buyer_name
+        FROM sales s
+        JOIN property p ON s.property_id = p.property_id
+        JOIN agent a ON s.agent_id = a.agent_id
+        JOIN client c ON s.buyer_id = c.client_id
+        WHERE s.sales_date >= ?
+        ORDER BY s.sales_date DESC
+        """;
+
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setString(1, date);
 
             ResultSet rs = ps.executeQuery();
 
-            System.out.println("ID | Price | Date");
-            System.out.println("------------------------");
+            System.out.println("\n--- Sales After: " + date + " ---");
+
+            System.out.printf("%-5s %-12s %-12s %-30s %-15s %-15s%n",
+                    "ID","Price","Date","Property","Agent","Buyer");
+
+            System.out.println("-----------------------------------------------------------------------------------------------------");
+
+            boolean hasData = false;
 
             while (rs.next()) {
-                System.out.println(rs.getInt("sales_id") + " | " +
-                        rs.getInt("sales_price") + " | " +
-                        rs.getString("sales_date"));
+                hasData = true;
+                System.out.printf("%-5d ₹%-11d %-12s %-30s %-15s %-15s%n",
+                        rs.getInt("sales_id"),
+                        rs.getInt("sales_price"),
+                        rs.getString("sales_date"),
+                        rs.getString("address") + ", " + rs.getString("city"),
+                        rs.getString("agent_name"),
+                        rs.getString("buyer_name"));
             }
+
+            if (!hasData) {
+                System.out.println("No sales records found after this date.");
+            }
+
+            System.out.println("-----------------------------------------------------------------------------------------------------");
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
-
     public static void filterSalesByAgent() {
         try {
             Connection conn = DBConnection.getConnection();
             Scanner sc = new Scanner(System.in);
 
-            System.out.print("Enter Agent ID: ");
+            System.out.print(" Enter Agent ID to generate report: ");
             int agentId = sc.nextInt();
 
-            String query = "SELECT * FROM sales WHERE agent_id = ?";
+            // Comprehensive query to get Agent name, Property details, and Client names
+            String query = """
+            SELECT 
+                a.name AS agent_name,
+                s.sales_id, 
+                s.sales_price, 
+                s.sales_date,
+                p.address, 
+                p.city,
+                b.client_name AS buyer_name,
+                sel.client_name AS seller_name
+            FROM sales s
+            JOIN agent a ON s.agent_id = a.agent_id
+            JOIN property p ON s.property_id = p.property_id
+            JOIN client b ON s.buyer_id = b.client_id
+            JOIN client sel ON s.seller_id = sel.client_id
+            WHERE s.agent_id = ?
+            ORDER BY s.sales_date DESC
+        """;
+
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setInt(1, agentId);
-
             ResultSet rs = ps.executeQuery();
 
+            boolean found = false;
+            double totalVolume = 0;
+            int dealCount = 0;
+
             while (rs.next()) {
-                System.out.println(rs.getInt("sales_id") + " | " +
-                        rs.getInt("sales_price"));
+                if (!found) {
+                    System.out.println("\n SALES REPORT FOR: " + rs.getString("agent_name").toUpperCase());
+                    System.out.println("------------------------------------------------------------------------------------------------");
+                    System.out.printf("%-10s | %-12s | %-15s | %-20s | %-15s\n",
+                            "ID", "Price", "Date", "Property Address", "Buyer");
+                    System.out.println("------------------------------------------------------------------------------------------------");
+                    found = true;
+                }
+
+                int price = rs.getInt("sales_price");
+                totalVolume += price;
+                dealCount++;
+
+                System.out.printf("%-10d | ₹%-11d | %-15s | %-20s | %-15s\n",
+                        rs.getInt("sales_id"),
+                        price,
+                        rs.getDate("sales_date"),
+                        rs.getString("address") + ", " + rs.getString("city"),
+                        rs.getString("buyer_name"));
             }
 
+
+
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            System.out.println(" Error generating agent report: " + e.getMessage());
         }
     }
-
     public static void filterSalesByProperty() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -180,10 +315,18 @@ public class SalesService {
 
             ResultSet rs = ps.executeQuery();
 
+            // Improved Print Statements
+            System.out.println("\n--- Sales Results for Property ID: " + propertyId + " ---");
+            System.out.printf("%-10s | %-15s%n", "SALE ID", "PRICE");
+            System.out.println("------------------------------------");
+
             while (rs.next()) {
-                System.out.println(rs.getInt("sales_id") + " | " +
+                // Using printf to align columns and format the price
+                System.out.printf("%-10d | %,-14d%n",
+                        rs.getInt("sales_id"),
                         rs.getInt("sales_price"));
             }
+            System.out.println("------------------------------------");
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -232,9 +375,15 @@ public class SalesService {
             PreparedStatement ps = conn.prepareStatement(query);
             ResultSet rs = ps.executeQuery();
 
+            System.out.println("\n--- Sales Sorted by Price (Highest First) ---");
+            System.out.printf("%-10s | %-12s | %-15s%n", "SALE ID", "PRICE", "DATE");
+            System.out.println("----------------------------------------------");
+
             while (rs.next()) {
-                System.out.println(rs.getInt("sales_id") + " | " +
-                        rs.getInt("sales_price"));
+                System.out.printf("%-10d | %,-11d | %-15s%n",
+                        rs.getInt("sales_id"),
+                        rs.getInt("sales_price"),
+                        rs.getString("sales_date"));
             }
 
         } catch (Exception e) {
@@ -250,9 +399,15 @@ public class SalesService {
             PreparedStatement ps = conn.prepareStatement(query);
             ResultSet rs = ps.executeQuery();
 
+            System.out.println("\n--- Sales Sorted by Date (Recent First) ---");
+            System.out.printf("%-12s | %-10s | %-12s%n", "DATE", "SALE ID", "PRICE");
+            System.out.println("----------------------------------------------");
+
             while (rs.next()) {
-                System.out.println(rs.getInt("sales_id") + " | " +
-                        rs.getString("sales_date"));
+                System.out.printf("%-12s | %-10d | %,-11d%n",
+                        rs.getString("sales_date"),
+                        rs.getInt("sales_id"),
+                        rs.getInt("sales_price"));
             }
 
         } catch (Exception e) {
@@ -285,7 +440,7 @@ public class SalesService {
             System.out.print("Enter Property ID: ");
             int propertyId = sc.nextInt();
 
-            // 🔥 Check property availability
+
             PreparedStatement check = conn.prepareStatement(
                     "SELECT availability_status FROM property WHERE property_id=?"
             );
@@ -294,16 +449,16 @@ public class SalesService {
             ResultSet rs = check.executeQuery();
 
             if (!rs.next()) {
-                System.out.println("❌ Property not found");
+                System.out.println(" Property not found");
                 return;
             }
 
             if (!rs.getBoolean("availability_status")) {
-                System.out.println("❌ Property already sold/rented");
+                System.out.println(" Property already sold/rented");
                 return;
             }
 
-            // 🔥 Insert sale
+
             String query = "INSERT INTO sales (sales_id, sales_price, sales_date, buyer_id, seller_id, agent_id, property_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement ps = conn.prepareStatement(query);
 
@@ -317,14 +472,14 @@ public class SalesService {
 
             ps.executeUpdate();
 
-            // 🔥 Update property availability
+
             PreparedStatement ps2 = conn.prepareStatement(
                     "UPDATE property SET availability_status=false WHERE property_id=?"
             );
             ps2.setInt(1, propertyId);
             ps2.executeUpdate();
 
-            // 🔥 Update owner (IMPORTANT FIX)
+
             PreparedStatement ps3 = conn.prepareStatement(
                     "UPDATE property SET owner_id=? WHERE property_id=?"
             );
@@ -332,7 +487,7 @@ public class SalesService {
             ps3.setInt(2, propertyId);
             ps3.executeUpdate();
 
-            System.out.println("✅ Sale recorded successfully!");
+            System.out.println("Sale recorded successfully!");
 
         } catch (Exception e){
             System.out.println("Error: " + e.getMessage());
@@ -359,7 +514,7 @@ public class SalesService {
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
     }
     public static void topBuyer() {
@@ -388,14 +543,14 @@ public class SalesService {
                 ResultSet rs2 = ps.executeQuery();
 
                 if (rs2.next()) {
-                    System.out.println("🏆 Top Buyer: " +
+                    System.out.println("Top Buyer: " +
                             rs2.getString("client_name") +
                             " (" + total + " purchases)");
                 }
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println(" Error: " + e.getMessage());
         }
     }
     public static void salesByDateRange() {
@@ -427,7 +582,7 @@ public class SalesService {
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println("Error: " + e.getMessage());
         }
     }
 }

@@ -308,7 +308,7 @@ public class AdministratorCLI {
                 case 3 -> SalesService.findSaleById();
 
                 case 4 -> SalesService.salesSummary();      // NEW
-                case 5 -> SalesService.topBuyer();          // NEW
+                case 5 -> SalesService.topBuyerInfo();          // NEW
                 case 6 -> SalesService.salesByDateRange();  // NEW
 
                 case 7 -> SalesService.deleteSale();
@@ -381,30 +381,39 @@ public class AdministratorCLI {
         while (true) {
             clearScreen();
             showHeader();
-            printTableMenu("QUERY MENU", new String[]{
-                    "Houses in city after 2023 available for rent",
-                    "Houses between 20L and 60L",
-                    "2BHK rent under 15000 in locality",
-                    "Top selling agent in 2023",
-                    "Average selling price & market time",
-                    "Most expensive & highest rent houses",
-                    "Run Custom Query",
-                    "Back"
+
+            printTableMenu("PROPERTY ANALYSIS MENU", new String[]{
+                    "1. Find Available Properties (City + Year)",
+                    "2. Find Properties by Price Range",
+                    "3. Find Rental Properties (Locality + BHK + Rent)",
+                    "4. Top Selling Agent (Year-wise)",
+                    "5. Agent Performance (Avg Price & Selling Time)",
+                    "6. Most Expensive & Highest Rent Property",
+                    "7. Run Custom SQL Query",
+                    "8. Back"
             });
 
             int choice = InputUtil.getIntegerInput("\nEnter choice: ");
 
-            switch (choice) {
-                case 1 -> QueryService.query1();
-                case 2 -> QueryService.query2();
-                case 3 -> QueryService.query3();
-                case 4 -> QueryService.query4();
-                case 5 -> QueryService.query5();
-                case 6 -> QueryService.query6();
-                case 7 -> QueryService.runCustomQuery();
-                case 8 -> { return; }
-                default -> System.out.println("Invalid choice.");
+            try {
+                switch (choice) {
+                    case 1 -> QueryService.query1();
+                    case 2 -> QueryService.query2();
+                    case 3 -> QueryService.query3();
+                    case 4 -> QueryService.query4();
+                    case 5 -> QueryService.query5();
+                    case 6 -> QueryService.query6();
+                    case 7 -> QueryService.runCustomQuery();
+                    case 8 -> { return; }
+                    default -> System.out.println("❌ Invalid choice.");
+                }
+            } catch (Exception e) {
+                System.out.println("❌ Error: " + e.getMessage());
             }
+
+            // 🔥 IMPORTANT → pause so user can see output
+            System.out.println("\nPress Enter to continue...");
+            InputUtil.sc.nextLine();
         }
     }
 }
