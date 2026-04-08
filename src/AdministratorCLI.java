@@ -322,6 +322,7 @@ public class AdministratorCLI {
                     "Top selling agent in 2023",
                     "Average selling price & market time",
                     "Most expensive & highest rent houses",
+                    "Run Custom Query",
                     "Back"
             });
 
@@ -334,7 +335,8 @@ public class AdministratorCLI {
                 case 4 -> QueryService.query4();
                 case 5 -> QueryService.query5();
                 case 6 -> QueryService.query6();
-                case 7 -> { return; }
+                case 7 -> QueryService.runCustomQuery();
+                case 8 -> { return; }
                 default -> System.out.println("Invalid choice.");
             }
         }

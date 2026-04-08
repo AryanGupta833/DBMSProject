@@ -1,6 +1,9 @@
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
 public class QueryService {
     public static void query1() {
@@ -135,6 +138,67 @@ public class QueryService {
             }
         } catch (Exception e) {
             System.out.println("Error" + e.getMessage());
+        }
+    }
+
+    public static void runCustomQuery() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("Enter SQL query (end with ';' on new line):");
+
+            StringBuilder queryBuilder = new StringBuilder();
+
+            while (true) {
+                String line = InputUtil.sc.nextLine();
+
+                if (line.trim().endsWith(";")) {
+                    queryBuilder.append(line, 0, line.lastIndexOf(";"));
+                    break;
+                }
+
+                queryBuilder.append(line).append("\n ");
+            }
+
+            String query = queryBuilder.toString().trim();
+
+            Statement stmt = conn.createStatement();
+
+            boolean hasResultSet = stmt.execute(query);
+
+            if (hasResultSet) {
+                ResultSet rs = stmt.getResultSet();
+
+                int colCount = rs.getMetaData().getColumnCount();
+
+                List<String> headers = new ArrayList<>();
+                for (int i = 1; i <= colCount; i++) {
+                    headers.add(rs.getMetaData().getColumnName(i));
+                }
+
+                List<List<String>> rows = new ArrayList<>();
+
+                while (rs.next()) {
+                    List<String> row = new ArrayList<>();
+                    for (int i = 1; i <= colCount; i++) {
+                        row.add(rs.getString(i));
+                    }
+                    rows.add(row);
+                }
+
+                if (rows.isEmpty()) {
+                    System.out.println("✅ Query executed. No rows returned.");
+                } else {
+                    TableUtil.printTable(headers, rows);
+                }
+
+            } else {
+                int affected = stmt.getUpdateCount();
+                System.out.println("✅ Query executed. Rows affected: " + affected);
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
     }
 }
