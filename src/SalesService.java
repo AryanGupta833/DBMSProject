@@ -585,4 +585,93 @@ public class SalesService {
             System.out.println("Error: " + e.getMessage());
         }
     }
+
+    public static void topAgentBySalesRevenue() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Top Agent by Sales Revenue");
+            System.out.println("Fetching agent with highest revenue...");
+
+            // TODO: JOIN + GROUP BY + SUM
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void salesByCity() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Sales by City");
+            System.out.println("Fetching sales grouped by property city...");
+
+            // TODO: JOIN property + GROUP BY city
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void monthlySalesReport() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Monthly Sales Report");
+            System.out.println("Generating month-wise sales and revenue...");
+
+            // TODO: GROUP BY MONTH(sales_date)
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void highValueSales() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int amount = InputUtil.getPositiveInt("Enter minimum amount");
+
+            System.out.println("\n[Query] High Value Sales");
+            System.out.println("Fetching sales above ₹" + amount);
+
+            // TODO: WHERE sales_price >= ?
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void unsoldProperties() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Unsold Properties");
+            System.out.println("Fetching properties not present in sales table...");
+
+            // TODO: NOT EXISTS / LEFT JOIN
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static void repeatBuyers() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Repeat Buyers");
+            System.out.println("Fetching buyers with multiple purchases...");
+
+            // TODO: GROUP BY buyer_id HAVING COUNT > 1
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+
+
+
 }

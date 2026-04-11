@@ -321,4 +321,9 @@ public class QueryService {
             System.out.println("❌ Error: " + e.getMessage());
         }
     }
+
+
+    //filter transaction by a property
+    //ease out so we can find client fast
+    //ease out on listing rule
 }

@@ -716,6 +716,100 @@ public class PropertyService {
         }
     }
 
+    public static void mostExpensiveProperty() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Most Expensive Property");
+            System.out.println("Fetching highest priced property...");
+
+            // TODO: ORDER BY price DESC LIMIT 1
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void propertiesByPriceRange() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int min = InputUtil.getPositiveInt("Enter Min Price");
+            int max = InputUtil.getPositiveInt("Enter Max Price");
+
+            System.out.println("\n[Query] Properties by Price Range");
+            System.out.println("Fetching properties between ₹" + min + " and ₹" + max);
+
+            // TODO: SQL
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void propertiesByType() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String type = InputUtil.getStringInput("Enter Type (Sale/Rent)");
+
+            System.out.println("\n[Query] Properties by Type");
+            System.out.println("Fetching " + type + " properties...");
+
+            // TODO: SQL
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void propertiesByYear() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int year = InputUtil.getPositiveInt("Enter Year");
+
+            System.out.println("\n[Query] Properties by Year Built");
+            System.out.println("Fetching properties built in year: " + year);
+
+            // TODO: SQL
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void averagePropertyPrice() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Average Property Price");
+            System.out.println("Calculating average price of properties...");
+
+            // TODO: AVG(price)
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void assignAgentToProperty() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+            int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+
+            System.out.println("\n[Query] Assign Agent to Property");
+            System.out.println("Assigning Agent " + agentId + " to Property " + propertyId);
+
+            // TODO: UPDATE property SET agent_id = ? WHERE property_id = ?
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
 
 
 

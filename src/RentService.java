@@ -432,4 +432,90 @@ public class RentService {
             System.out.println("❌ Error: " + e.getMessage());
         }
     }
+
+    public static void topAgentByRentRevenue() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Top Agent by Rent Revenue");
+            System.out.println("Fetching agent generating highest rental income...");
+
+            // TODO: JOIN + GROUP BY + SUM
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void rentByCity() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Rent by City");
+            System.out.println("Fetching rent distribution across cities...");
+
+            // TODO: JOIN property + GROUP BY city
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void monthlyRentReport() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Monthly Rent Report");
+            System.out.println("Generating month-wise rental statistics...");
+
+            // TODO: GROUP BY MONTH
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void highValueRentals() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int amount = InputUtil.getPositiveInt("Enter minimum rent amount");
+
+            System.out.println("\n[Query] High Value Rentals");
+            System.out.println("Fetching rentals above ₹" + amount);
+
+            // TODO: WHERE rent_amount >= ?
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void vacantProperties() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Vacant Properties");
+            System.out.println("Fetching properties not currently rented...");
+
+            // TODO: NOT EXISTS / LEFT JOIN
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void repeatTenants() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Repeat Tenants");
+            System.out.println("Fetching tenants with multiple rentals...");
+
+            // TODO: GROUP BY tenant_id HAVING COUNT > 1
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
 }

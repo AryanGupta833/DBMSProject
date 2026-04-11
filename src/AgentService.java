@@ -2,6 +2,13 @@ import java.sql.*;
 import java.util.*;
 
 public class AgentService {
+    private static int resolveAgentId() {
+        if ("AGENT".equals(Session.role)) {
+            return Session.userId; // 🔥 auto
+        } else {
+            return InputUtil.getPositiveInt("Enter Agent ID"); // admin/office
+        }
+    }
 
     public static void addAgent() {
         try {
@@ -290,7 +297,7 @@ public class AgentService {
         }
     }
 
-    public static void countAgency() {
+    public static void countAgents() {
         try {
             Connection conn = DBConnection.getConnection();
 
@@ -351,7 +358,7 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+            int agentId = resolveAgentId();
 
             PreparedStatement ps = conn.prepareStatement("""
             SELECT 
@@ -377,7 +384,8 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+            int agentId = resolveAgentId();
+
 
             // basic info
             PreparedStatement ps1 = conn.prepareStatement(
@@ -480,7 +488,8 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+            int agentId = resolveAgentId();
+
 
             PreparedStatement ps = conn.prepareStatement("""
             SELECT p.property_id, p.city, pt.listing_type, pt.price
@@ -506,4 +515,236 @@ public class AgentService {
             System.out.println("❌ Error: " + e.getMessage());
         }
     }
+
+    public static void agentRevenue() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = resolveAgentId();
+
+
+            System.out.println("\n[Query] Agent Revenue");
+            System.out.println("Calculating total revenue for Agent ID: " + agentId);
+
+            // TODO: SQL implementation
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void agentActiveListings() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = resolveAgentId();
+
+
+            System.out.println("\n[Query] Active Listings");
+            System.out.println("Fetching properties managed by Agent ID: " + agentId);
+
+            // TODO: SQL implementation
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void agentDealBreakdown() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = resolveAgentId();
+
+
+            System.out.println("\n[Query] Deal Breakdown");
+            System.out.println("Analyzing sales and rentals for Agent ID: " + agentId);
+
+            // TODO: SQL implementation
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void agentPortfolioValue() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = resolveAgentId();
+
+
+            System.out.println("\n[Query] Portfolio Value");
+            System.out.println("Calculating total property value for Agent ID: " + agentId);
+
+            // TODO: SQL implementation
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void bottomAgentByRevenue() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Bottom Agent by Revenue");
+            System.out.println("Finding lowest earning agent...");
+
+            // TODO: SQL implementation
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void agentsWithNoDeals() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Agents With No Deals");
+            System.out.println("Listing agents with no transactions...");
+
+            // TODO: SQL implementation
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+
+    public static void agentSuccessRate() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = resolveAgentId();
+
+
+            System.out.println("\n[Query] Agent Success Rate");
+            System.out.println("Calculating success rate for Agent ID: " + agentId);
+
+            // TODO: SQL implementation
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+
+    public static void agentDealsHistory() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = resolveAgentId();
+
+
+            System.out.println("\n[Query] Agent Deals History");
+            System.out.println("Fetching all sales and rentals handled by Agent ID: " + agentId);
+
+            // TODO: SQL (sales + rent join / union)
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+
+    public static void agentsByCity() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String city = InputUtil.getStringInput("Enter City");
+
+            System.out.println("\n[Query] Agents in City");
+            System.out.println("Finding agents handling properties in: " + city);
+
+            // TODO: SQL (JOIN property)
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void agentWorkload() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            int agentId = resolveAgentId();
+
+
+            System.out.println("\n[Query] Agent Workload");
+            System.out.println("Analyzing workload for Agent ID: " + agentId);
+
+            // TODO: SQL (properties + deals count)
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+
+    public static void topAgentByRevenue() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Top Agent by Revenue");
+            System.out.println("Fetching agent with highest total sales revenue...");
+
+            // TODO: SQL (JOIN + SUM + GROUP BY)
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void agentSalesCount() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Agent Sales Count");
+            System.out.println("Counting total sales handled by each agent...");
+
+            // TODO: SQL
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+    public static void agentRevenueBreakdown() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Agent Revenue Breakdown");
+            System.out.println("Fetching revenue generated by each agent...");
+
+            // TODO: SQL
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+
+    public static void agentsWithNoSales() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.println("\n[Query] Agents With No Sales");
+            System.out.println("Fetching agents who have not made any sales...");
+
+            // TODO: SQL (LEFT JOIN / NOT EXISTS)
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+    }
+
+
+
+
+
+
+
+
 }
