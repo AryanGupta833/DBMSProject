@@ -110,25 +110,15 @@ public class AdministratorCLI {
             showHeader();
 
             printTableMenu("CLIENT MENU", new String[]{
-
-                    // 🔹 CRUD
                     "Add Client",
                     "View Clients",
                     "Find Client by ID",
                     "Update Client",
 
-                    // 🔹 Client Insights
-                    "View Client with Roles",
-                    "Client Transaction History",
-                    "Client Summary",
+                    "View Client with Roles",        // NEW
+                    "Client Transaction History",    // NEW
+                    "Client Summary",                // NEW
 
-                    // 🔥 Client Analytics (NEW)
-                    "Top Buyer by Purchases",
-                    "Repeat Clients",
-                    "Client Revenue Contribution",
-                    "Clients With No Transactions",
-
-                    // 🔹 Management
                     "Delete Client",
                     "Assign Role",
                     "Search Client by Name",
@@ -139,46 +129,32 @@ public class AdministratorCLI {
                     "Remove Client Role",
                     "Update Client Role",
                     "Check Client Exists",
-
-                    // 🔹 Exit
                     "Back"
             });
 
             int choice = InputUtil.getIntegerInput("\nEnter choice: ");
 
             switch (choice) {
-
-                // 🔹 CRUD
                 case 1 -> ClientService.addClient();
                 case 2 -> ClientService.viewClient();
                 case 3 -> ClientService.findClientById();
                 case 4 -> ClientService.updateClient();
 
-                // 🔹 Insights
-                case 5 -> ClientService.viewClientWithRoles();
-                case 6 -> ClientService.viewClientTransactions();
-                case 7 -> ClientService.clientSummary();
+                case 5 -> ClientService.viewClientWithRoles();      // NEW
+                case 6 -> ClientService.viewClientTransactions();   // NEW
+                case 7 -> ClientService.clientSummary();            // NEW
 
-                // 🔥 Analytics
-                case 8 -> ClientService.topBuyerByPurchases();
-                case 9 -> ClientService.repeatClients();
-                case 10 -> ClientService.clientRevenueContribution();
-                case 11 -> ClientService.clientsWithNoTransactions();
-
-                // 🔹 Management
-                case 12 -> ClientService.deleteClient();
-                case 13 -> ClientService.assignRole();
-                case 14 -> ClientService.searchClientByName();
-                case 15 -> ClientService.countClients();
-                case 16 -> ClientService.sortClientsByName();
-                case 17 -> ClientService.sortClientsById();
-                case 18 -> ClientService.filterClientsByRole();
-                case 19 -> ClientService.removeClientRole();
-                case 20 -> ClientService.updateClientRole();
-                case 21 -> ClientService.checkClientExists();
-
-                // 🔹 Exit
-                case 22 -> { return; }
+                case 8 -> ClientService.deleteClient();
+                case 9 -> ClientService.assignRole();
+                case 10 -> ClientService.searchClientByName();
+                case 11 -> ClientService.countClients();
+                case 12 -> ClientService.sortClientsByName();
+                case 13 -> ClientService.sortClientsById();
+                case 14 -> ClientService.filterClientsByRole();
+                case 15 -> ClientService.removeClientRole();
+                case 16 -> ClientService.updateClientRole();
+                case 17 -> ClientService.checkClientExists();
+                case 18 -> { return; }
 
                 default -> System.out.println("Invalid choice.");
             }
@@ -191,38 +167,16 @@ public class AdministratorCLI {
             showHeader();
 
             printTableMenu("AGENT MENU", new String[]{
-
-                    // 🔹 CRUD
                     "Add Agent",
                     "View Agents",
                     "Find Agent by ID",
                     "Update Agent",
 
-                    // 🔹 Analytics (Core)
-                    "Agent Performance",
-                    "Agent Summary",
-                    "Top Performing Agent",
-                    "Bottom Performing Agent",
-                    "View Agent Properties",
+                    "Agent Performance",        // NEW
+                    "Agent Summary",            // NEW
+                    "Top Performing Agent",     // NEW
+                    "View Agent Properties",    // NEW
 
-                    // 🔹 Advanced Queries
-                    "Agent Revenue",
-                    "Active Listings",
-                    "Deal Breakdown",
-                    "Portfolio Value",
-                    "Success Rate",
-                    "Deals History",
-                    "Agents By City",
-                    "Agent Workload",
-
-                    // 🔥 NEW ADVANCED ANALYTICS
-                    "Top Agent by Revenue",
-                    "Agent Sales Count",
-                    "Agent Revenue Breakdown",
-                    "Agents With No Deals",
-                    "Agents With No Sales",
-
-                    // 🔹 Utility
                     "Delete Agent",
                     "Search Agent by Name",
                     "Filter by Experience",
@@ -230,56 +184,30 @@ public class AdministratorCLI {
                     "Count Agents",
                     "Sort Agents by Experience",
                     "Check Agent Exists",
-
-                    // 🔹 Exit
                     "Back"
             });
 
             int choice = InputUtil.getIntegerInput("\nEnter choice: ");
 
             switch (choice) {
-
-                // 🔹 CRUD
                 case 1 -> AgentService.addAgent();
                 case 2 -> AgentService.viewAgent();
                 case 3 -> AgentService.findAgentById();
                 case 4 -> AgentService.updateAgent();
 
-                // 🔹 Core Analytics
-                case 5 -> AgentService.agentPerformance();
-                case 6 -> AgentService.agentSummary();
-                case 7 -> AgentService.topAgent();
-                case 8 -> AgentService.bottomAgentByRevenue();
-                case 9 -> AgentService.viewAgentProperties();
+                case 5 -> AgentService.agentPerformance();     // NEW
+                case 6 -> AgentService.agentSummary();         // NEW
+                case 7 -> AgentService.topAgent();             // NEW
+                case 8 -> AgentService.viewAgentProperties();  // NEW
 
-                // 🔹 Advanced Queries
-                case 10 -> AgentService.agentRevenue();
-                case 11 -> AgentService.agentActiveListings();
-                case 12 -> AgentService.agentDealBreakdown();
-                case 13 -> AgentService.agentPortfolioValue();
-                case 14 -> AgentService.agentSuccessRate();
-                case 15 -> AgentService.agentDealsHistory();
-                case 16 -> AgentService.agentsByCity();
-                case 17 -> AgentService.agentWorkload();
-
-                // 🔥 NEW ADVANCED ANALYTICS
-                case 18 -> AgentService.topAgentByRevenue();
-                case 19 -> AgentService.agentSalesCount();
-                case 20 -> AgentService.agentRevenueBreakdown();
-                case 21 -> AgentService.agentsWithNoDeals();
-                case 22 -> AgentService.agentsWithNoSales();
-
-                // 🔹 Utility
-                case 23 -> AgentService.deleteAgent();
-                case 24 -> AgentService.searchAgentByName();
-                case 25 -> AgentService.filterAgentsByExperience();
-                case 26 -> AgentService.filterAgentsByAgency();
-                case 27 -> AgentService.countAgents();
-                case 28 -> AgentService.sortAgentsByExperience();
-                case 29 -> AgentService.checkAgentExists();
-
-                // 🔹 Exit
-                case 30 -> { return; }
+                case 9 -> AgentService.deleteAgent();
+                case 10 -> AgentService.searchAgentByName();
+                case 11 -> AgentService.filterAgentsByExperience();
+                case 12 -> AgentService.filterAgentsByAgency();
+//                case 13 -> AgentService.countAgency();
+                case 14 -> AgentService.sortAgentsByExperience();
+                case 15 -> AgentService.checkAgentExists();
+                case 16 -> { return; }
 
                 default -> System.out.println("Invalid choice.");
             }
@@ -292,97 +220,57 @@ public class AdministratorCLI {
             showHeader();
 
             printTableMenu("PROPERTY MENU", new String[]{
-
-                    // 🔹 CRUD
                     "Add Property",
                     "View Properties",
                     "Update Availability",
                     "Find Property by ID",
                     "Update Property",
 
-                    // 🔹 Listing & Transactions
-                    "Update Listing",
-                    "Remove Listing",
-                    "Sell Property",
-                    "Rent Property",
-                    "Relist Property",
+                    "Update Listing",          // NEW
+                    "Remove Listing",          // NEW
+                    "Sell Property",           // NEW
+                    "Rent Property",           // NEW
+                    "Relist Property",         // NEW
 
-                    // 🔹 Search & Filters
+                    "Delete Property",
                     "Search by City",
                     "Search by Locality",
                     "Filter by Bedrooms",
                     "Filter by Size Range",
                     "Filter by Availability",
-                    "Filter by Price Range",
-                    "Filter by Type",
-                    "Filter by Year Built",
-
-                    // 🔹 Analytics (🔥 important)
-                    "Most Expensive Property",
-                    "Average Property Price",
-
-                    // 🔹 Deal Insights (🔥 NEW)
-                    "View All Deals",
-                    "Deals by Date Range",
-                    "Total Deal Value",
-
-                    // 🔹 Utility
-                    "Delete Property",
                     "Count Properties",
                     "Sort Properties by Price",
                     "Sort Properties by Size",
                     "Check Property Exists",
-
-                    // 🔹 Exit
                     "Back"
             });
 
             int choice = InputUtil.getIntegerInput("\nEnter choice: ");
 
             switch (choice) {
-
-                // 🔹 CRUD
                 case 1 -> PropertyService.addProperty();
                 case 2 -> PropertyService.viewProperties();
                 case 3 -> PropertyService.updateAvailability();
                 case 4 -> PropertyService.findPropertyById();
                 case 5 -> PropertyService.updateProperty();
 
-                // 🔹 Listing & Transactions
-                case 6 -> PropertyService.updateListing();
-                case 7 -> PropertyService.removeListing();
-                case 8 -> PropertyService.sellProperty();
-                case 9 -> PropertyService.rentProperty();
-                case 10 -> PropertyService.relistProperty();
+                case 6 -> PropertyService.updateListing();     // NEW
+                case 7 -> PropertyService.removeListing();     // NEW
+                case 8 -> PropertyService.sellProperty();      // NEW
+                case 9 -> PropertyService.rentProperty();      // NEW
+                case 10 -> PropertyService.relistProperty();   // NEW
 
-                // 🔹 Search & Filters
-                case 11 -> PropertyService.searchPropertyByCity();
-                case 12 -> PropertyService.searchPropertyByLocality();
-                case 13 -> PropertyService.filterByBedrooms();
-                case 14 -> PropertyService.filterBySizeRange();
-                case 15 -> PropertyService.filterByAvailability();
-                case 16 -> PropertyService.propertiesByPriceRange();
-                case 17 -> PropertyService.propertiesByType();
-                case 18 -> PropertyService.propertiesByYear();
-
-                // 🔹 Analytics
-                case 19 -> PropertyService.mostExpensiveProperty();
-                case 20 -> PropertyService.averagePropertyPrice();
-
-                // 🔹 Deal Insights
-                case 21 -> DealService.viewAllDeals();
-                case 22 -> DealService.dealsByDateRange();
-                case 23 -> DealService.totalDealValue();
-
-                // 🔹 Utility
-                case 24 -> PropertyService.deleteProperty();
-                case 25 -> PropertyService.countProperties();
-                case 26 -> PropertyService.sortPropertiesByPrice();
-                case 27 -> PropertyService.sortPropertiesBySize();
-                case 28 -> PropertyService.checkPropertyExists();
-
-                // 🔹 Exit
-                case 29 -> { return; }
+                case 11 -> PropertyService.deleteProperty();
+                case 12 -> PropertyService.searchPropertyByCity();
+                case 13 -> PropertyService.searchPropertyByLocality();
+                case 14 -> PropertyService.filterByBedrooms();
+                case 15 -> PropertyService.filterBySizeRange();
+                case 16 -> PropertyService.filterByAvailability();
+                case 17 -> PropertyService.countProperties();
+                case 18 -> PropertyService.sortPropertiesByPrice();
+                case 19 -> PropertyService.sortPropertiesBySize();
+                case 20 -> PropertyService.checkPropertyExists();
+                case 21 -> { return; }
 
                 default -> System.out.println("Invalid choice.");
             }
@@ -395,84 +283,45 @@ public class AdministratorCLI {
             showHeader();
 
             printTableMenu("SALES MENU", new String[]{
-                    // 🔹 Core
                     "Record Sale",
                     "View Sales",
                     "Find Sale by ID",
 
-                    // 🔹 Basic Analytics
-                    "Sales Summary",
-                    "Top Buyer",
-                    "Sales by Date Range",
+                    "Sales Summary",          // NEW
+                    "Top Buyer",              // NEW
+                    "Sales by Date Range",    // NEW
 
-                    // 🔹 Filters
+                    "Delete Sale",
                     "Filter Sales by Date",
                     "Filter Sales by Agent",
                     "Filter Sales by Property",
-
-                    // 🔹 Aggregates
                     "Total Sales Amount",
                     "Count Sales",
-
-                    // 🔹 Sorting
                     "Sort Sales by Amount",
                     "Sort Sales by Date",
-
-                    // 🔥 Advanced Sales Analytics
-                    "Top Agent by Sales Revenue",
-                    "Sales by City",
-                    "Monthly Sales Report",
-                    "High Value Sales",
-                    "Unsold Properties",
-                    "Repeat Buyers",
-
-                    // 🔹 Utility
-                    "Delete Sale",
-
-                    // 🔹 Exit
                     "Back"
             });
 
             int choice = InputUtil.getIntegerInput("\nEnter choice: ");
 
             switch (choice) {
-
-                // 🔹 Core
                 case 1 -> SalesService.RecordSale();
                 case 2 -> SalesService.viewSales();
                 case 3 -> SalesService.findSaleById();
 
-                // 🔹 Basic Analytics
-                case 4 -> SalesService.salesSummary();
-                case 5 -> SalesService.topBuyerInfo();
-                case 6 -> SalesService.salesByDateRange();
+                case 4 -> SalesService.salesSummary();      // NEW
+                case 5 -> SalesService.topBuyerInfo();          // NEW
+                case 6 -> SalesService.salesByDateRange();  // NEW
 
-                // 🔹 Filters
-                case 7 -> SalesService.filterSalesByDate();
-                case 8 -> SalesService.filterSalesByAgent();
-                case 9 -> SalesService.filterSalesByProperty();
-
-                // 🔹 Aggregates
-                case 10 -> SalesService.totalSalesAmount();
-                case 11 -> SalesService.countSales();
-
-                // 🔹 Sorting
-                case 12 -> SalesService.sortSalesByAmount();
-                case 13 -> SalesService.sortSalesByDate();
-
-                // 🔥 Advanced Sales Analytics
-                case 14 -> SalesService.topAgentBySalesRevenue();
-                case 15 -> SalesService.salesByCity();
-                case 16 -> SalesService.monthlySalesReport();
-                case 17 -> SalesService.highValueSales();
-                case 18 -> SalesService.unsoldProperties();
-                case 19 -> SalesService.repeatBuyers();
-
-                // 🔹 Utility
-                case 20 -> SalesService.deleteSale();
-
-                // 🔹 Exit
-                case 21 -> { return; }
+                case 7 -> SalesService.deleteSale();
+                case 8 -> SalesService.filterSalesByDate();
+                case 9 -> SalesService.filterSalesByAgent();
+                case 10 -> SalesService.filterSalesByProperty();
+                case 11 -> SalesService.totalSalesAmount();
+                case 12 -> SalesService.countSales();
+                case 13 -> SalesService.sortSalesByAmount();
+                case 14 -> SalesService.sortSalesByDate();
+                case 15 -> { return; }
 
                 default -> System.out.println("Invalid choice.");
             }
@@ -485,84 +334,45 @@ public class AdministratorCLI {
             showHeader();
 
             printTableMenu("RENT MENU", new String[]{
-                    // 🔹 Core
                     "Record Rent",
                     "View Rent Records",
                     "Find Rent by ID",
 
-                    // 🔹 Basic Analytics
-                    "Rent Summary",
-                    "Top Tenant",
-                    "Rent by Date Range",
+                    "Rent Summary",          // NEW
+                    "Top Tenant",            // NEW
+                    "Rent by Date Range",    // NEW
 
-                    // 🔹 Filters
+                    "Delete Rent",
                     "Filter Rent by Date",
                     "Filter Rent by Client",
                     "Filter Rent by Property",
-
-                    // 🔹 Aggregates
                     "Total Rent Amount",
                     "Count Rents",
-
-                    // 🔹 Sorting
                     "Sort Rent by Amount",
                     "Sort Rent by Date",
-
-                    // 🔥 Advanced Rent Analytics
-                    "Top Agent by Rent Revenue",
-                    "Rent by City",
-                    "Monthly Rent Report",
-                    "High Value Rentals",
-                    "Vacant Properties",
-                    "Repeat Tenants",
-
-                    // 🔹 Utility
-                    "Delete Rent",
-
-                    // 🔹 Exit
                     "Back"
             });
 
             int choice = InputUtil.getIntegerInput("\nEnter choice: ");
 
             switch (choice) {
-
-                // 🔹 Core
                 case 1 -> RentService.recordRent();
                 case 2 -> RentService.viewRent();
                 case 3 -> RentService.findRentById();
 
-                // 🔹 Basic Analytics
-                case 4 -> RentService.rentSummary();
-                case 5 -> RentService.topTenant();
-                case 6 -> RentService.rentByDateRange();
+                case 4 -> RentService.rentSummary();       // NEW
+                case 5 -> RentService.topTenant();         // NEW
+                case 6 -> RentService.rentByDateRange();   // NEW
 
-                // 🔹 Filters
-                case 7 -> RentService.filterRentByDate();
-                case 8 -> RentService.filterRentByClient();
-                case 9 -> RentService.filterRentByProperty();
-
-                // 🔹 Aggregates
-                case 10 -> RentService.totalRentAmount();
-                case 11 -> RentService.countRents();
-
-                // 🔹 Sorting
-                case 12 -> RentService.sortRentByAmount();
-                case 13 -> RentService.sortRentByDate();
-
-                // 🔥 Advanced Rent Analytics
-                case 14 -> RentService.topAgentByRentRevenue();
-                case 15 -> RentService.rentByCity();
-                case 16 -> RentService.monthlyRentReport();
-                case 17 -> RentService.highValueRentals();
-                case 18 -> RentService.vacantProperties();
-                case 19 -> RentService.repeatTenants();
-
-                // 🔹 Utility
-                case 20 -> RentService.deleteRent();
-
-                // 🔹 Exit
-                case 21 -> { return; }
+                case 7 -> RentService.deleteRent();
+                case 8 -> RentService.filterRentByDate();
+                case 9 -> RentService.filterRentByClient();
+                case 10 -> RentService.filterRentByProperty();
+                case 11 -> RentService.totalRentAmount();
+                case 12 -> RentService.countRents();
+                case 13 -> RentService.sortRentByAmount();
+                case 14 -> RentService.sortRentByDate();
+                case 15 -> { return; }
 
                 default -> System.out.println("Invalid choice.");
             }
@@ -575,14 +385,14 @@ public class AdministratorCLI {
             showHeader();
 
             printTableMenu("PROPERTY ANALYSIS MENU", new String[]{
-                    " Find Available Properties (City + Year)",
-                    " Find Properties by Price Range",
-                    " Find Rental Properties (Locality + BHK + Rent)",
-                    " Top Selling Agent (Year-wise)",
-                    " Agent Performance (Avg Price & Selling Time)",
-                    " Most Expensive & Highest Rent Property",
-                    " Run Custom SQL Query",
-                    " Back"
+                    "1. Find Available Properties (City + Year)",
+                    "2. Find Properties by Price Range",
+                    "3. Find Rental Properties (Locality + BHK + Rent)",
+                    "4. Top Selling Agent (Year-wise)",
+                    "5. Agent Performance (Avg Price & Selling Time)",
+                    "6. Most Expensive & Highest Rent Property",
+                    "7. Run Custom SQL Query",
+                    "8. Back"
             });
 
             int choice = InputUtil.getIntegerInput("\nEnter choice: ");

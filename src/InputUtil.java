@@ -54,33 +54,39 @@ public class InputUtil {
             String phone = sc.nextLine().trim();
 
             if (phone.matches("\\d{10}")) {
-                return phone;
-            } else {
-                System.out.println("Phone must be 10 digits.");
-            }
+            return phone;
+        } else {
+            System.out.println("Phone must be 10 digits.");
         }
     }
+}
 
 
-    public static int getPositiveInt(String message) {
-        while (true) {
-            int value = getIntegerInput(message);
-            if (value > 0) return value;
+public static int getPositiveInt(String message) {
+    while (true) {
+        int value = InputUtil.getIntegerInput(message);
+        if (value > 0) return value;
 
-            System.out.println("Must be greater than 0.");
+        System.out.println("Must be greater than 0.");
+    }
+}
+
+
+public static int getIntInRange(String message, int min, int max) {
+    while (true) {
+        int value = InputUtil.getIntegerInput(message);
+
+        if (value >= min && value <= max) {
+            return value;
+        } else {
+            System.out.println("Enter value between \" + min + \" and " + max);
         }
     }
+}
 
 
-    public static int getIntInRange(String message, int min, int max) {
-        while (true) {
-            int value = getIntegerInput(message);
-
-            if (value >= min && value <= max) {
-                return value;
-            } else {
-                System.out.println("Enter value between " + min + " and " + max);
-            }
-        }
+public static void pressEnterToContinue() {
+    System.out.println("\nPress Enter to continue...");
+            sc.nextLine();
     }
 }

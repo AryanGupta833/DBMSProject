@@ -3,6 +3,30 @@ import java.util.*;
 
 public class ClientService {
 
+    // Helper method to show clients before asking for ID input
+    private static void showClientsForSelection() throws Exception {
+        Connection conn = DBConnection.getConnection();
+        ResultSet rs = conn.createStatement().executeQuery("SELECT client_id, client_name, client_phone FROM client");
+
+        List<String> headers = Arrays.asList("ID", "Name", "Phone");
+        List<List<String>> rows = new ArrayList<>();
+
+        while (rs.next()) {
+            rows.add(Arrays.asList(
+                    String.valueOf(rs.getInt("client_id")),
+                    rs.getString("client_name"),
+                    rs.getString("client_phone")
+            ));
+        }
+
+        if (!rows.isEmpty()) {
+            System.out.println("\n📋 Available Clients:");
+            TableUtil.printTable(headers, rows);
+        } else {
+            System.out.println("❌ No clients available.");
+        }
+    }
+
     public static void addClient() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -28,6 +52,7 @@ public class ClientService {
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void viewClient() {
@@ -52,15 +77,22 @@ public class ClientService {
                 ));
             }
 
-            TableUtil.printTable(headers, rows);
+            if (rows.isEmpty()) {
+                System.out.println("❌ No clients found");
+            } else {
+                System.out.println("\n📋 All Clients:");
+                TableUtil.printTable(headers, rows);
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void assignRole() {
         try {
+            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int clientId = InputUtil.getPositiveInt("Enter Client ID");
@@ -90,6 +122,7 @@ public class ClientService {
 
             if (rs.next()) {
                 System.out.println("⚠️ Role already exists for this client");
+                InputUtil.pressEnterToContinue();
                 return;
             }
 
@@ -107,10 +140,12 @@ public class ClientService {
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void findClientById() {
         try {
+            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
@@ -122,7 +157,8 @@ public class ClientService {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                System.out.println("\nClient Details:");
+                System.out.println("\n🔍 Client Details:");
+                System.out.println("ID: " + rs.getInt("client_id"));
                 System.out.println("Name: " + rs.getString("client_name"));
                 System.out.println("Phone: " + rs.getString("client_phone"));
                 System.out.println("Email: " + rs.getString("client_email"));
@@ -134,10 +170,12 @@ public class ClientService {
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void updateClient() {
         try {
+            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
@@ -209,6 +247,7 @@ public class ClientService {
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void searchClientByName() {
@@ -223,19 +262,30 @@ public class ClientService {
 
             ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
-                System.out.println("\nClient Details:");
-                System.out.println("Name: " + rs.getString("client_name"));
-                System.out.println("Phone: " + rs.getString("client_phone"));
-                System.out.println("Email: " + rs.getString("client_email"));
-                System.out.println("Address: " + rs.getString("client_address"));
+            List<String> headers = Arrays.asList("ID", "Name", "Phone", "Email", "Address");
+            List<List<String>> rows = new ArrayList<>();
+
+            while (rs.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("client_id")),
+                        rs.getString("client_name"),
+                        rs.getString("client_phone"),
+                        rs.getString("client_email"),
+                        rs.getString("client_address")
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ Client not found matching: " + name);
             } else {
-                System.out.println("❌ Client not found");
+                System.out.println("\n🔍 Search Results:");
+                TableUtil.printTable(headers, rows);
             }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void countClients() {
@@ -246,12 +296,13 @@ public class ClientService {
                     .executeQuery("SELECT COUNT(*) FROM client");
 
             if (rs.next()) {
-                System.out.println("Total Clients: " + rs.getInt(1));
+                System.out.println("📊 Total Clients: " + rs.getInt(1));
             }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void sortClientsByName() {
@@ -259,15 +310,26 @@ public class ClientService {
             Connection conn = DBConnection.getConnection();
 
             ResultSet rs = conn.createStatement()
-                    .executeQuery("SELECT * FROM client ORDER BY client_name");
+                    .executeQuery("SELECT client_id, client_name, client_phone FROM client ORDER BY client_name");
+
+            List<String> headers = Arrays.asList("ID", "Name", "Phone");
+            List<List<String>> rows = new ArrayList<>();
 
             while (rs.next()) {
-                System.out.println(rs.getString("client_name"));
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("client_id")),
+                        rs.getString("client_name"),
+                        rs.getString("client_phone")
+                ));
             }
+
+            System.out.println("\n📊 Clients Sorted By Name:");
+            TableUtil.printTable(headers, rows);
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void sortClientsById() {
@@ -275,15 +337,26 @@ public class ClientService {
             Connection conn = DBConnection.getConnection();
 
             ResultSet rs = conn.createStatement()
-                    .executeQuery("SELECT * FROM client ORDER BY client_id");
+                    .executeQuery("SELECT client_id, client_name, client_phone FROM client ORDER BY client_id");
+
+            List<String> headers = Arrays.asList("ID", "Name", "Phone");
+            List<List<String>> rows = new ArrayList<>();
 
             while (rs.next()) {
-                System.out.println(rs.getString("client_name"));
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("client_id")),
+                        rs.getString("client_name"),
+                        rs.getString("client_phone")
+                ));
             }
+
+            System.out.println("\n📊 Clients Sorted By ID:");
+            TableUtil.printTable(headers, rows);
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void filterClientsByRole() {
@@ -336,16 +409,19 @@ public class ClientService {
             if (rows.isEmpty()) {
                 System.out.println("❌ No clients found for role: " + role);
             } else {
+                System.out.println("\n📋 Clients filtered by role (" + role + "):");
                 TableUtil.printTable(headers, rows);
             }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void removeClientRole() {
         try {
+            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
@@ -365,6 +441,7 @@ public class ClientService {
 
             if (roles.isEmpty()) {
                 System.out.println("❌ No roles found for this client");
+                InputUtil.pressEnterToContinue();
                 return;
             }
 
@@ -405,16 +482,18 @@ public class ClientService {
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void updateClientRole() {
         try {
+            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
             String role;
             while (true) {
-                role = InputUtil.getStringInput("Enter Role (Buyer/Seller/Tenant)");
+                role = InputUtil.getStringInput("Enter Role to Add (Buyer/Seller/Tenant)");
 
                 if (role.equalsIgnoreCase("Buyer") ||
                         role.equalsIgnoreCase("Seller") ||
@@ -453,10 +532,12 @@ public class ClientService {
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void checkClientExists() {
         try {
+            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
@@ -476,7 +557,9 @@ public class ClientService {
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
+
     public static void viewClientWithRoles() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -500,24 +583,39 @@ public class ClientService {
                 map.putIfAbsent(id, new ArrayList<>());
                 if (role != null) map.get(id).add(role);
 
-                map.get(id).add(0, name); // store name at index 0
+                if (map.get(id).isEmpty() || !map.get(id).get(0).equals(name)) {
+                    map.get(id).add(0, name); // store name at index 0
+                }
             }
+
+            List<String> headers = Arrays.asList("Client ID", "Name", "Assigned Roles");
+            List<List<String>> rows = new ArrayList<>();
 
             for (var entry : map.entrySet()) {
+                int id = entry.getKey();
                 List<String> data = entry.getValue();
                 String name = data.get(0);
-                List<String> roles = data.subList(1, data.size());
+                List<String> roles = data.size() > 1 ? data.subList(1, data.size()) : new ArrayList<>();
 
-                System.out.println(name + " → " +
-                        (roles.isEmpty() ? "No Role" : String.join(", ", roles)));
+                rows.add(Arrays.asList(
+                        String.valueOf(id),
+                        name,
+                        roles.isEmpty() ? "No Role" : String.join(", ", roles)
+                ));
             }
+
+            System.out.println("\n📋 Clients With Roles:");
+            TableUtil.printTable(headers, rows);
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
+
     public static void viewClientTransactions() {
         try {
+            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
@@ -530,19 +628,22 @@ public class ClientService {
             ps1.setInt(1, id);
 
             ResultSet rs1 = ps1.executeQuery();
-
-            boolean found = false;
+            List<String> purchaseHeaders = Arrays.asList("Property ID", "Price", "Date");
+            List<List<String>> purchaseRows = new ArrayList<>();
 
             while (rs1.next()) {
-                found = true;
-                System.out.println(
-                        "Property: " + rs1.getInt("property_id") +
-                                ", Price: " + rs1.getInt("sales_price") +
-                                ", Date: " + rs1.getString("sales_date")
-                );
+                purchaseRows.add(Arrays.asList(
+                        String.valueOf(rs1.getInt("property_id")),
+                        "₹" + String.format("%,d", rs1.getInt("sales_price")),
+                        rs1.getString("sales_date")
+                ));
             }
 
-            if (!found) System.out.println("No purchases found");
+            if (purchaseRows.isEmpty()) {
+                System.out.println("No purchases found");
+            } else {
+                TableUtil.printTable(purchaseHeaders, purchaseRows);
+            }
 
             System.out.println("\n--- RENTALS ---");
 
@@ -552,26 +653,32 @@ public class ClientService {
             ps2.setInt(1, id);
 
             ResultSet rs2 = ps2.executeQuery();
-
-            found = false;
+            List<String> rentHeaders = Arrays.asList("Property ID", "Monthly Rent", "Start Date");
+            List<List<String>> rentRows = new ArrayList<>();
 
             while (rs2.next()) {
-                found = true;
-                System.out.println(
-                        "Property: " + rs2.getInt("property_id") +
-                                ", Rent: " + rs2.getInt("rent_amount") +
-                                ", Start: " + rs2.getString("rent_start_date")
-                );
+                rentRows.add(Arrays.asList(
+                        String.valueOf(rs2.getInt("property_id")),
+                        "₹" + String.format("%,d", rs2.getInt("rent_amount")),
+                        rs2.getString("rent_start_date")
+                ));
             }
 
-            if (!found) System.out.println("No rentals found");
+            if (rentRows.isEmpty()) {
+                System.out.println("No rentals found");
+            } else {
+                TableUtil.printTable(rentHeaders, rentRows);
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
+
     public static void deleteClient() {
         try {
+            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
@@ -585,6 +692,7 @@ public class ClientService {
 
             if (ps1.executeQuery().next()) {
                 System.out.println("❌ Cannot delete: Client involved in sales");
+                InputUtil.pressEnterToContinue();
                 return;
             }
 
@@ -596,6 +704,7 @@ public class ClientService {
 
             if (ps2.executeQuery().next()) {
                 System.out.println("❌ Cannot delete: Client involved in rent");
+                InputUtil.pressEnterToContinue();
                 return;
             }
 
@@ -615,9 +724,12 @@ public class ClientService {
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
+
     public static void clientSummary() {
         try {
+            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
@@ -632,6 +744,7 @@ public class ClientService {
 
             if (!rs1.next()) {
                 System.out.println("❌ Client not found");
+                InputUtil.pressEnterToContinue();
                 return;
             }
 
@@ -679,57 +792,158 @@ public class ClientService {
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
+
     public static void topBuyerByPurchases() {
         try {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Top Buyer by Purchases");
-            System.out.println("Fetching client with highest number of purchases...");
 
-            // TODO: GROUP BY + COUNT + ORDER BY DESC
+            String query = """
+                SELECT c.client_id, c.client_name, COUNT(s.sales_id) as total_purchases
+                FROM client c
+                JOIN sales s ON c.client_id = s.buyer_id
+                GROUP BY c.client_id, c.client_name
+                ORDER BY total_purchases DESC
+                LIMIT 1
+            """;
+
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            if (rs.next()) {
+                System.out.println("🏆 Top Buyer: " + rs.getString("client_name") + " (ID: " + rs.getInt("client_id") + ")");
+                System.out.println("Total Purchases: " + rs.getInt("total_purchases"));
+            } else {
+                System.out.println("❌ No sales data found to determine top buyer.");
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
+
     public static void repeatClients() {
         try {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Repeat Clients");
-            System.out.println("Fetching clients with multiple transactions...");
 
-            // TODO: GROUP BY client_id HAVING COUNT > 1
+            String query = """
+                SELECT client_id, client_name, total_transactions
+                FROM (
+                    SELECT c.client_id, c.client_name,
+                           (SELECT COUNT(*) FROM sales WHERE buyer_id = c.client_id OR seller_id = c.client_id) +
+                           (SELECT COUNT(*) FROM rent WHERE tenant_id = c.client_id) as total_transactions
+                    FROM client c
+                ) AS trans
+                WHERE total_transactions > 1
+                ORDER BY total_transactions DESC
+            """;
+
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            List<String> headers = Arrays.asList("Client ID", "Name", "Total Transactions");
+            List<List<String>> rows = new ArrayList<>();
+
+            while (rs.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("client_id")),
+                        rs.getString("client_name"),
+                        String.valueOf(rs.getInt("total_transactions"))
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ No repeat clients found.");
+            } else {
+                TableUtil.printTable(headers, rows);
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
+
     public static void clientRevenueContribution() {
         try {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Client Revenue Contribution");
-            System.out.println("Calculating total revenue generated by each client...");
+            System.out.println("Calculating total transaction value generated by buyers...");
 
-            // TODO: JOIN sales + SUM
+            String query = """
+                SELECT c.client_id, c.client_name, COALESCE(SUM(s.sales_price), 0) as total_revenue
+                FROM client c
+                JOIN sales s ON c.client_id = s.buyer_id
+                GROUP BY c.client_id, c.client_name
+                ORDER BY total_revenue DESC
+            """;
+
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            List<String> headers = Arrays.asList("Client ID", "Name", "Total Spent/Generated");
+            List<List<String>> rows = new ArrayList<>();
+
+            while (rs.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("client_id")),
+                        rs.getString("client_name"),
+                        "₹" + String.format("%,d", rs.getLong("total_revenue"))
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ No revenue data found.");
+            } else {
+                TableUtil.printTable(headers, rows);
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
+
     public static void clientsWithNoTransactions() {
         try {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Clients With No Transactions");
-            System.out.println("Fetching clients not involved in sales or rent...");
 
-            // TODO: NOT EXISTS / LEFT JOIN
+            String query = """
+                SELECT c.client_id, c.client_name, c.client_phone, c.client_email
+                FROM client c
+                WHERE NOT EXISTS (SELECT 1 FROM sales WHERE buyer_id = c.client_id OR seller_id = c.client_id)
+                  AND NOT EXISTS (SELECT 1 FROM rent WHERE tenant_id = c.client_id)
+            """;
+
+            ResultSet rs = conn.createStatement().executeQuery(query);
+
+            List<String> headers = Arrays.asList("ID", "Name", "Phone", "Email");
+            List<List<String>> rows = new ArrayList<>();
+
+            while (rs.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("client_id")),
+                        rs.getString("client_name"),
+                        rs.getString("client_phone"),
+                        rs.getString("client_email")
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("✅ All clients have been involved in at least one transaction.");
+            } else {
+                TableUtil.printTable(headers, rows);
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 }
