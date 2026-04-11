@@ -27,7 +27,7 @@ public class Login{
             // 🔥 THIS IS YOUR REDIRECTION
             if (role.equals("ADMIN")) {
                 AdministratorCLI.start();
-            } else if (role.equals("OFFICE")) {
+            } else if (role.equals("AGENCY")) {
                 OfficeMenu.start();
             } else if (role.equals("AGENT")) {
                 AgentMenu.start();

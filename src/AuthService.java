@@ -7,45 +7,44 @@ public class AuthService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            // ADMIN
-            PreparedStatement ps1 = conn.prepareStatement(
-                    "SELECT admin_id FROM admin WHERE username=? AND password=?"//yaha par password ko email sa replace kardena
-            );
-            ps1.setString(1, username);
-            ps1.setString(2, password);
-
-            ResultSet rs1 = ps1.executeQuery();
-            if (rs1.next()) {
-                Session.userId = rs1.getInt("admin_id");
+            // 🔥 1. ADMIN (HARDCODED)
+            if ("admin".equals(username) && "admin123".equals(password)) {
+                Session.userId = 1;        // dummy ID
                 Session.role = "ADMIN";
+                Session.agencyId = 0;      // not needed for admin
                 return "ADMIN";
             }
 
-            // OFFICE
+            // 🔥 2. OFFICE (AGENCY LOGIN)
             PreparedStatement ps2 = conn.prepareStatement(
-                    "SELECT office_id FROM office WHERE username=? AND password=?"//yaha par password ko email sa replace kardena
-                                                                                    //Office ko agency sa replace kardena
+                    "SELECT agency_id FROM enterprise WHERE agency_name=? AND agency_email=?"
             );
+
             ps2.setString(1, username);
             ps2.setString(2, password);
 
             ResultSet rs2 = ps2.executeQuery();
+
             if (rs2.next()) {
-                Session.userId = rs2.getInt("office_id");
-                Session.role = "OFFICE";
-                return "OFFICE";
+                Session.userId = rs2.getInt("agency_id"); // agency acts as office
+                Session.agencyId = rs2.getInt("agency_id"); // 🔥 same
+                Session.role = "AGENCY";
+                return "AGENCY";
             }
 
-            // AGENT
+            // 🔥 3. AGENT (LOGIN USING NAME + EMAIL)
             PreparedStatement ps3 = conn.prepareStatement(
-                    "SELECT agent_id FROM agent WHERE username=? AND password=?"//yaha par password ko email sa replace kardena
+                    "SELECT agent_id, agency_id FROM agent WHERE name=? AND email=?"
             );
+
             ps3.setString(1, username);
             ps3.setString(2, password);
 
             ResultSet rs3 = ps3.executeQuery();
+
             if (rs3.next()) {
                 Session.userId = rs3.getInt("agent_id");
+                Session.agencyId = rs3.getInt("agency_id"); // 🔥 important for filtering
                 Session.role = "AGENT";
                 return "AGENT";
             }
@@ -54,6 +53,6 @@ public class AuthService {
             e.printStackTrace();
         }
 
-        return null;
+        return null; // ❌ login failed
     }
 }

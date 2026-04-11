@@ -43,7 +43,18 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM agent");
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement(
+                        "SELECT * FROM agent WHERE agency_id=?"
+                );
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("SELECT * FROM agent");
+            }
+
+            ResultSet rs = ps.executeQuery();
 
             List<String> headers = Arrays.asList(
                     "ID", "Name", "Phone", "Email", "Experience", "Agency ID"
@@ -280,7 +291,13 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int agencyId = InputUtil.getPositiveInt("Enter Agency ID");
+            int agencyId;
+
+            if ("AGENCY".equals(Session.role)) {
+                agencyId = Session.agencyId;
+            } else {
+                agencyId = InputUtil.getPositiveInt("Enter Agency ID");
+            }
 
             PreparedStatement ps = conn.prepareStatement(
                     "SELECT * FROM agent WHERE agency_id=?");
@@ -301,8 +318,18 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            ResultSet rs = conn.createStatement()
-                    .executeQuery("SELECT COUNT(*) FROM agent");
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement(
+                        "SELECT COUNT(*) FROM agent WHERE agency_id=?"
+                );
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("SELECT COUNT(*) FROM agent");
+            }
+
+            ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
                 System.out.println("Total Agents: " + rs.getInt(1));

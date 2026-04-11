@@ -5,7 +5,7 @@ public class OfficeMenu {
             AdministratorCLI.clearScreen();
             AdministratorCLI.showHeader();
 
-            AdministratorCLI.printTableMenu("OFFICE PANEL", new String[]{
+            AdministratorCLI.printTableMenu("AGENCY PANEL", new String[]{
 
                     // 🔹 Property Management
                     "Add Property",
