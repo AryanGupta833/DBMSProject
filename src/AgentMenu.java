@@ -23,7 +23,7 @@ public class AgentMenu {
                     "View My Clients",
 
                     // 🔹 Sales Transactions
-                    "Mark Property Sold",
+                    "Sales Transaction",
                     "View My Deals",
                     "Deals by Date Range (My Deals)",
                     "Total Deal Value (My Deals)",
@@ -55,6 +55,8 @@ public class AgentMenu {
                     "My Success Rate",
                     "My Deals History",
                     "My Workload",
+                    "My Most Expensive Property",
+                    "My Average Property Price",
 
                     // 🔹 Exit
                     "Back"
@@ -112,9 +114,11 @@ public class AgentMenu {
                 case 35 -> AgentService.agentSuccessRate();
                 case 36 -> AgentService.agentDealsHistory();
                 case 37 -> AgentService.agentWorkload();
+                case 38 -> PropertyService.mostExpensiveProperty();
+                case 39 -> PropertyService.averagePropertyPrice();
 
                 // 🔹 Exit
-                case 38 -> {
+                case 40 -> {
                     return;
                 }
 

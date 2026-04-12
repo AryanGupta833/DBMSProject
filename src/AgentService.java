@@ -290,8 +290,20 @@ public class AgentService {
 
             String name = InputUtil.getStringInput("Enter name to search");
 
-            PreparedStatement ps = conn.prepareStatement("SELECT * FROM agent WHERE name LIKE ?");
-            ps.setString(1, "%" + name + "%");
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement(
+                        "SELECT * FROM agent WHERE name LIKE ? AND agency_id=?"
+                );
+                ps.setString(1, "%" + name + "%");
+                ps.setInt(2, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement(
+                        "SELECT * FROM agent WHERE name LIKE ?"
+                );
+                ps.setString(1, "%" + name + "%");
+            }            ps.setString(1, "%" + name + "%");
 
             ResultSet rs = ps.executeQuery();
 
@@ -433,9 +445,20 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            ResultSet rs = conn.createStatement()
-                    .executeQuery("SELECT agent_id, name, experience_year FROM agent ORDER BY experience_year DESC");
+            PreparedStatement ps;
 
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement(
+                        "SELECT agent_id, name, experience_year FROM agent WHERE agency_id=? ORDER BY experience_year DESC"
+                );
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement(
+                        "SELECT agent_id, name, experience_year FROM agent ORDER BY experience_year DESC"
+                );
+            }
+
+            ResultSet rs = ps.executeQuery();
             List<String> headers = Arrays.asList("ID", "Name", "Experience");
             List<List<String>> rows = new ArrayList<>();
 
@@ -566,7 +589,25 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            String query = """
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement("""
+                SELECT a.agent_id, a.name, COUNT(*) AS total
+                FROM agent a
+                JOIN (
+                    SELECT agent_id FROM sales
+                    UNION ALL
+                    SELECT agent_id FROM rent
+                ) AS deals ON a.agent_id = deals.agent_id
+                WHERE a.agency_id = ?
+                GROUP BY a.agent_id, a.name
+                ORDER BY total DESC
+                LIMIT 1
+                """);
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("""
                 SELECT a.agent_id, a.name, COUNT(*) AS total
                 FROM agent a
                 JOIN (
@@ -577,9 +618,10 @@ public class AgentService {
                 GROUP BY a.agent_id, a.name
                 ORDER BY total DESC
                 LIMIT 1
-                """;
+                """);
+            }
 
-            ResultSet rs = conn.createStatement().executeQuery(query);
+            ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
                 System.out.println("\n🏆 TOP AGENT:");
@@ -930,17 +972,31 @@ public class AgentService {
             Connection conn = DBConnection.getConnection();
 
             // FIXED: s.price -> s.sales_price
-            String query = """
-                SELECT a.agent_id, a.name, COALESCE(SUM(s.sales_price), 0) as total_revenue
-                FROM agent a
-                LEFT JOIN sales s ON a.agent_id = s.agent_id
-                GROUP BY a.agent_id, a.name
-                HAVING total_revenue >= 0
-                ORDER BY total_revenue ASC
-                LIMIT 1
-                """;
+            PreparedStatement ps;
 
-            ResultSet rs = conn.createStatement().executeQuery(query);
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement("""
+        SELECT a.agent_id, a.name, COALESCE(SUM(s.sales_price), 0) as total_revenue
+        FROM agent a
+        LEFT JOIN sales s ON a.agent_id = s.agent_id
+        WHERE a.agency_id = ?
+        GROUP BY a.agent_id, a.name
+        ORDER BY total_revenue ASC
+        LIMIT 1
+    """);
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("""
+        SELECT a.agent_id, a.name, COALESCE(SUM(s.sales_price), 0) as total_revenue
+        FROM agent a
+        LEFT JOIN sales s ON a.agent_id = s.agent_id
+        GROUP BY a.agent_id, a.name
+        ORDER BY total_revenue ASC
+        LIMIT 1
+    """);
+            }
+
+            ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
                 System.out.println("\n📉 LOWEST EARNING AGENT:");
@@ -961,16 +1017,29 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            // FIXED: s.sale_id -> s.sales_id
-            String query = """
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement("""
                 SELECT a.agent_id, a.name, a.phone, a.experience_year
                 FROM agent a
                 LEFT JOIN sales s ON a.agent_id = s.agent_id
                 LEFT JOIN rent r ON a.agent_id = r.agent_id
                 WHERE s.sales_id IS NULL AND r.rent_id IS NULL
-                """;
+                AND a.agency_id = ?
+            """);
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("""
+                SELECT a.agent_id, a.name, a.phone, a.experience_year
+                FROM agent a
+                LEFT JOIN sales s ON a.agent_id = s.agent_id
+                LEFT JOIN rent r ON a.agent_id = r.agent_id
+                WHERE s.sales_id IS NULL AND r.rent_id IS NULL
+            """);
+            }
 
-            ResultSet rs = conn.createStatement().executeQuery(query);
+            ResultSet rs = ps.executeQuery();
 
             List<String> headers = Arrays.asList("ID", "Name", "Phone", "Experience");
             List<List<String>> rows = new ArrayList<>();
@@ -1004,15 +1073,28 @@ public class AgentService {
 
             String city = InputUtil.getStringInput("Enter City");
 
-            PreparedStatement ps = conn.prepareStatement("""
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement("""
+                    SELECT DISTINCT a.agent_id, a.name, a.phone, COUNT(p.property_id) as property_count
+                    FROM agent a
+                    JOIN property p ON a.agent_id = p.agent_id
+                    WHERE p.city = ? AND a.agency_id = ?
+                    GROUP BY a.agent_id, a.name, a.phone
+                    """);
+                ps.setString(1, city);
+                ps.setInt(2, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("""
                     SELECT DISTINCT a.agent_id, a.name, a.phone, COUNT(p.property_id) as property_count
                     FROM agent a
                     JOIN property p ON a.agent_id = p.agent_id
                     WHERE p.city = ?
                     GROUP BY a.agent_id, a.name, a.phone
                     """);
-
-            ps.setString(1, city);
+                ps.setString(1, city);
+            }
 
             ResultSet rs = ps.executeQuery();
 
@@ -1029,7 +1111,7 @@ public class AgentService {
             }
 
             if (rows.isEmpty()) {
-                System.out.println("❌ No agents found handling properties in " + city);
+                System.out.println("❌ No agents found in " + city);
             } else {
                 System.out.println("\n🏙️ Agents in " + city + ":");
                 TableUtil.printTable(headers, rows);
@@ -1046,17 +1128,31 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            // FIXED: s.price -> s.sales_price
-            String query = """
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement("""
+                SELECT a.agent_id, a.name, SUM(s.sales_price) as total_revenue
+                FROM agent a
+                JOIN sales s ON a.agent_id = s.agent_id
+                WHERE a.agency_id = ?
+                GROUP BY a.agent_id, a.name
+                ORDER BY total_revenue DESC
+                LIMIT 1
+                """);
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("""
                 SELECT a.agent_id, a.name, SUM(s.sales_price) as total_revenue
                 FROM agent a
                 JOIN sales s ON a.agent_id = s.agent_id
                 GROUP BY a.agent_id, a.name
                 ORDER BY total_revenue DESC
                 LIMIT 1
-                """;
+                """);
+            }
 
-            ResultSet rs = conn.createStatement().executeQuery(query);
+            ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
                 System.out.println("\n🏆 TOP AGENT BY REVENUE:");
@@ -1077,16 +1173,29 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            // FIXED: s.sale_id -> s.sales_id
-            String query = """
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement("""
+                SELECT a.agent_id, a.name, COUNT(s.sales_id) AS sales_count
+                FROM agent a
+                LEFT JOIN sales s ON a.agent_id = s.agent_id
+                WHERE a.agency_id = ?
+                GROUP BY a.agent_id, a.name
+                ORDER BY sales_count DESC
+            """);
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("""
                 SELECT a.agent_id, a.name, COUNT(s.sales_id) AS sales_count
                 FROM agent a
                 LEFT JOIN sales s ON a.agent_id = s.agent_id
                 GROUP BY a.agent_id, a.name
                 ORDER BY sales_count DESC
-                """;
+            """);
+            }
 
-            ResultSet rs = conn.createStatement().executeQuery(query);
+            ResultSet rs = ps.executeQuery();
 
             List<String> headers = Arrays.asList("ID", "Name", "Sales Count");
             List<List<String>> rows = new ArrayList<>();
@@ -1117,16 +1226,29 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            // FIXED: s.price -> s.sales_price
-            String query = """
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement("""
+                SELECT a.agent_id, a.name, COALESCE(SUM(s.sales_price), 0) AS total_revenue
+                FROM agent a
+                LEFT JOIN sales s ON a.agent_id = s.agent_id
+                WHERE a.agency_id = ?
+                GROUP BY a.agent_id, a.name
+                ORDER BY total_revenue DESC
+            """);
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("""
                 SELECT a.agent_id, a.name, COALESCE(SUM(s.sales_price), 0) AS total_revenue
                 FROM agent a
                 LEFT JOIN sales s ON a.agent_id = s.agent_id
                 GROUP BY a.agent_id, a.name
                 ORDER BY total_revenue DESC
-                """;
+            """);
+            }
 
-            ResultSet rs = conn.createStatement().executeQuery(query);
+            ResultSet rs = ps.executeQuery();
 
             List<String> headers = Arrays.asList("ID", "Name", "Total Revenue");
             List<List<String>> rows = new ArrayList<>();
@@ -1157,15 +1279,26 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            // FIXED: s.sale_id -> s.sales_id
-            String query = """
+            PreparedStatement ps;
+
+            if ("AGENCY".equals(Session.role)) {
+                ps = conn.prepareStatement("""
+                SELECT a.agent_id, a.name, a.phone, a.experience_year
+                FROM agent a
+                LEFT JOIN sales s ON a.agent_id = s.agent_id
+                WHERE s.sales_id IS NULL AND a.agency_id = ?
+            """);
+                ps.setInt(1, Session.agencyId);
+            } else {
+                ps = conn.prepareStatement("""
                 SELECT a.agent_id, a.name, a.phone, a.experience_year
                 FROM agent a
                 LEFT JOIN sales s ON a.agent_id = s.agent_id
                 WHERE s.sales_id IS NULL
-                """;
+            """);
+            }
 
-            ResultSet rs = conn.createStatement().executeQuery(query);
+            ResultSet rs = ps.executeQuery();
 
             List<String> headers = Arrays.asList("ID", "Name", "Phone", "Experience");
             List<List<String>> rows = new ArrayList<>();

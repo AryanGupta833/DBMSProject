@@ -110,18 +110,30 @@ public class AdministratorCLI {
             showHeader();
 
             printTableMenu("CLIENT MENU", new String[]{
+
+                    // 🔹 CRUD
                     "Add Client",
                     "View Clients",
                     "Find Client by ID",
                     "Update Client",
 
-                    "View Client with Roles",        // NEW
-                    "Client Transaction History",    // NEW
-                    "Client Summary",                // NEW
+                    // 🔹 Client Insights
+                    "View Client with Roles",
+                    "Client Transaction History",
+                    "Client Summary",
 
+                    // 🔥 ADVANCED ANALYTICS (NEW)
+                    "Top Buyer by Purchases",
+                    "Repeat Clients",
+                    "Client Revenue Contribution",
+                    "Clients With No Transactions",
+
+                    // 🔹 Management
                     "Delete Client",
                     "Assign Role",
                     "Search Client by Name",
+
+                    // 🔹 Utility
                     "Count Clients",
                     "Sort Clients by Name",
                     "Sort Clients by ID",
@@ -129,32 +141,48 @@ public class AdministratorCLI {
                     "Remove Client Role",
                     "Update Client Role",
                     "Check Client Exists",
+
+                    // 🔹 Exit
                     "Back"
             });
 
             int choice = InputUtil.getIntegerInput("\nEnter choice: ");
 
             switch (choice) {
+
+                // 🔹 CRUD
                 case 1 -> ClientService.addClient();
                 case 2 -> ClientService.viewClient();
                 case 3 -> ClientService.findClientById();
                 case 4 -> ClientService.updateClient();
 
-                case 5 -> ClientService.viewClientWithRoles();      // NEW
-                case 6 -> ClientService.viewClientTransactions();   // NEW
-                case 7 -> ClientService.clientSummary();            // NEW
+                // 🔹 Insights
+                case 5 -> ClientService.viewClientWithRoles();
+                case 6 -> ClientService.viewClientTransactions();
+                case 7 -> ClientService.clientSummary();
 
-                case 8 -> ClientService.deleteClient();
-                case 9 -> ClientService.assignRole();
-                case 10 -> ClientService.searchClientByName();
-                case 11 -> ClientService.countClients();
-                case 12 -> ClientService.sortClientsByName();
-                case 13 -> ClientService.sortClientsById();
-                case 14 -> ClientService.filterClientsByRole();
-                case 15 -> ClientService.removeClientRole();
-                case 16 -> ClientService.updateClientRole();
-                case 17 -> ClientService.checkClientExists();
-                case 18 -> { return; }
+                // 🔥 ADVANCED ANALYTICS
+                case 8 -> ClientService.topBuyerByPurchases();
+                case 9 -> ClientService.repeatClients();
+                case 10 -> ClientService.clientRevenueContribution();
+                case 11 -> ClientService.clientsWithNoTransactions();
+
+                // 🔹 Management
+                case 12 -> ClientService.deleteClient();
+                case 13 -> ClientService.assignRole();
+                case 14 -> ClientService.searchClientByName();
+
+                // 🔹 Utility
+                case 15 -> ClientService.countClients();
+                case 16 -> ClientService.sortClientsByName();
+                case 17 -> ClientService.sortClientsById();
+                case 18 -> ClientService.filterClientsByRole();
+                case 19 -> ClientService.removeClientRole();
+                case 20 -> ClientService.updateClientRole();
+                case 21 -> ClientService.checkClientExists();
+
+                // 🔹 Exit
+                case 22 -> { return; }
 
                 default -> System.out.println("Invalid choice.");
             }
@@ -184,6 +212,8 @@ public class AdministratorCLI {
                     "Count Agents",
                     "Sort Agents by Experience",
                     "Check Agent Exists",
+                    "Bottom Performing Agent",
+                    "Agents By City",
                     "Back"
             });
 
@@ -207,7 +237,9 @@ public class AdministratorCLI {
 //                case 13 -> AgentService.countAgency();
                 case 14 -> AgentService.sortAgentsByExperience();
                 case 15 -> AgentService.checkAgentExists();
-                case 16 -> { return; }
+                case 16 -> AgentService.bottomAgentByRevenue();
+                case 17 -> AgentService.agentsByCity();
+                case 18 -> { return; }
 
                 default -> System.out.println("Invalid choice.");
             }
@@ -242,6 +274,9 @@ public class AdministratorCLI {
                     "Sort Properties by Price",
                     "Sort Properties by Size",
                     "Check Property Exists",
+                    "Most Expensive Property",
+                    "Average Property Price",
+                    "Filter by Year Built",
                     "Back"
             });
 
@@ -270,7 +305,10 @@ public class AdministratorCLI {
                 case 18 -> PropertyService.sortPropertiesByPrice();
                 case 19 -> PropertyService.sortPropertiesBySize();
                 case 20 -> PropertyService.checkPropertyExists();
-                case 21 -> { return; }
+                case 21 -> PropertyService.mostExpensiveProperty();
+                case 22 -> PropertyService.averagePropertyPrice();
+                case 23 -> PropertyService.propertiesByYear();
+                case 24 -> { return; }
 
                 default -> System.out.println("Invalid choice.");
             }

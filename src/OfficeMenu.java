@@ -75,6 +75,11 @@ public class OfficeMenu {
                     "Count Properties",
                     "Check Property Exists",
                     "View All Deals",
+                    "Bottom Performing Agent",
+                    "Agents By City",
+                    "Most Expensive Property",
+                    "Average Property Price",
+                    "Filter by Year Built",
 
                     // 🔹 Exit
                     "Back"
@@ -152,9 +157,14 @@ public class OfficeMenu {
                 case 47 -> PropertyService.countProperties();
                 case 48 -> PropertyService.checkPropertyExists();
                 case 49 -> DealService.viewAllDeals();
+                case 50 -> AgentService.bottomAgentByRevenue();
+                case 51 -> AgentService.agentsByCity();
+                case 52 -> PropertyService.mostExpensiveProperty();
+                case 53 -> PropertyService.averagePropertyPrice();
+                case 54 -> PropertyService.propertiesByYear();
 
                 // 🔹 Exit
-                case 50 -> {
+                case 55 -> {
                     return;
                 }
 
