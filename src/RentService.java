@@ -438,9 +438,26 @@ public class RentService {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Top Agent by Rent Revenue");
-            System.out.println("Fetching agent generating highest rental income...");
 
-            // TODO: JOIN + GROUP BY + SUM
+            String q =
+                    "SELECT a.name, SUM(r.rent_amount) AS total_revenue " +
+                            "FROM rent r " +
+                            "JOIN agent a ON r.agent_id = a.agent_id " +
+                            "GROUP BY a.name " +
+                            "ORDER BY total_revenue DESC LIMIT 1";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-20s %-15s%n","Agent","Revenue");
+            System.out.println("----------------------------------------");
+
+            if(rs.next()){
+                System.out.printf("%-20s %-15d%n",
+                        rs.getString("name"),
+                        rs.getInt("total_revenue"));
+            } else {
+                System.out.println("No data found.");
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
@@ -452,9 +469,23 @@ public class RentService {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Rent by City");
-            System.out.println("Fetching rent distribution across cities...");
 
-            // TODO: JOIN property + GROUP BY city
+            String q =
+                    "SELECT p.city, SUM(r.rent_amount) AS total_rent " +
+                            "FROM rent r " +
+                            "JOIN property p ON r.property_id = p.property_id " +
+                            "GROUP BY p.city";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-20s %-15s%n","City","Total Rent");
+            System.out.println("----------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-20s %-15d%n",
+                        rs.getString("city"),
+                        rs.getInt("total_rent"));
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
@@ -466,9 +497,23 @@ public class RentService {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Monthly Rent Report");
-            System.out.println("Generating month-wise rental statistics...");
 
-            // TODO: GROUP BY MONTH
+            String q =
+                    "SELECT MONTH(rent_start_date) AS month, SUM(rent_amount) AS total " +
+                            "FROM rent " +
+                            "GROUP BY MONTH(rent_start_date) " +
+                            "ORDER BY month";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-10s %-15s%n","Month","Total Rent");
+            System.out.println("--------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-10d %-15d%n",
+                        rs.getInt("month"),
+                        rs.getInt("total"));
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
@@ -482,9 +527,30 @@ public class RentService {
             int amount = InputUtil.getPositiveInt("Enter minimum rent amount");
 
             System.out.println("\n[Query] High Value Rentals");
-            System.out.println("Fetching rentals above ₹" + amount);
 
-            // TODO: WHERE rent_amount >= ?
+            String q =
+                    "SELECT * FROM rent WHERE rent_amount >= ?";
+
+            PreparedStatement ps = conn.prepareStatement(q);
+            ps.setInt(1, amount);
+
+            ResultSet rs = ps.executeQuery();
+
+            System.out.printf("%-8s %-12s %-12s %-12s %-10s %-12s %-10s%n",
+                    "ID","Amount","Start","End","Tenant","Property","Agent");
+
+            System.out.println("--------------------------------------------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-8d %-12d %-12s %-12s %-10d %-12d %-10d%n",
+                        rs.getInt("rent_id"),
+                        rs.getInt("rent_amount"),
+                        rs.getString("rent_start_date"),
+                        rs.getString("rent_end_date"),
+                        rs.getInt("tenant_id"),
+                        rs.getInt("property_id"),
+                        rs.getInt("agent_id"));
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
@@ -496,9 +562,26 @@ public class RentService {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Vacant Properties");
-            System.out.println("Fetching properties not currently rented...");
 
-            // TODO: NOT EXISTS / LEFT JOIN
+            String q =
+                    "SELECT p.property_id, p.address, p.city " +
+                            "FROM property p " +
+                            "LEFT JOIN rent r ON p.property_id = r.property_id " +
+                            "WHERE r.property_id IS NULL";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-10s %-25s %-20s%n",
+                    "ID","Address","City");
+
+            System.out.println("---------------------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-10d %-25s %-20s%n",
+                        rs.getInt("property_id"),
+                        rs.getString("address"),
+                        rs.getString("city"));
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
@@ -510,9 +593,24 @@ public class RentService {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Repeat Tenants");
-            System.out.println("Fetching tenants with multiple rentals...");
 
-            // TODO: GROUP BY tenant_id HAVING COUNT > 1
+            String q =
+                    "SELECT c.client_name, COUNT(r.rent_id) AS total_rents " +
+                            "FROM rent r " +
+                            "JOIN client c ON r.tenant_id = c.client_id " +
+                            "GROUP BY r.tenant_id " +
+                            "HAVING COUNT(r.rent_id) > 1";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-25s %-15s%n","Tenant","Total Rents");
+            System.out.println("----------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-25s %-15d%n",
+                        rs.getString("client_name"),
+                        rs.getInt("total_rents"));
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());

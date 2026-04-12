@@ -423,14 +423,14 @@ public class AdministratorCLI {
             showHeader();
 
             printTableMenu("PROPERTY ANALYSIS MENU", new String[]{
-                    "1. Find Available Properties (City + Year)",
-                    "2. Find Properties by Price Range",
-                    "3. Find Rental Properties (Locality + BHK + Rent)",
-                    "4. Top Selling Agent (Year-wise)",
-                    "5. Agent Performance (Avg Price & Selling Time)",
-                    "6. Most Expensive & Highest Rent Property",
-                    "7. Run Custom SQL Query",
-                    "8. Back"
+                    " Find Available Properties (City + Year)",
+                    " Find Properties by Price Range",
+                    " Find Rental Properties (Locality + BHK + Rent)",
+                    " Top Selling Agent (Year-wise)",
+                    " Agent Performance (Avg Price & Selling Time)",
+                    " Most Expensive & Highest Rent Property",
+                    " Run Custom SQL Query",
+                    " Back"
             });
 
             int choice = InputUtil.getIntegerInput("\nEnter choice: ");

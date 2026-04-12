@@ -324,6 +324,125 @@ public class QueryService {
 
 
     //filter transaction by a property
+    public static void transactionsByProperty() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.print("Enter Property ID: ");
+            int id = sc.nextInt();
+
+            System.out.println("\n--- SALES ---");
+
+            String salesQ =
+                    "SELECT s.sales_id, s.sales_price, s.sales_date, c.client_name AS buyer " +
+                            "FROM sales s " +
+                            "JOIN client c ON s.buyer_id = c.client_id " +
+                            "WHERE s.property_id = ?";
+
+            PreparedStatement ps1 = conn.prepareStatement(salesQ);
+            ps1.setInt(1, id);
+
+            ResultSet rs1 = ps1.executeQuery();
+
+            while(rs1.next()){
+                System.out.printf("SaleID: %d | ₹%d | %s | Buyer: %s%n",
+                        rs1.getInt("sales_id"),
+                        rs1.getInt("sales_price"),
+                        rs1.getString("sales_date"),
+                        rs1.getString("buyer"));
+            }
+
+            System.out.println("\n--- RENT ---");
+
+            String rentQ =
+                    "SELECT r.rent_id, r.rent_amount, r.rent_start_date, c.client_name AS tenant " +
+                            "FROM rent r " +
+                            "JOIN client c ON r.tenant_id = c.client_id " +
+                            "WHERE r.property_id = ?";
+
+            PreparedStatement ps2 = conn.prepareStatement(rentQ);
+            ps2.setInt(1, id);
+
+            ResultSet rs2 = ps2.executeQuery();
+
+            while(rs2.next()){
+                System.out.printf("RentID: %d | ₹%d | %s | Tenant: %s%n",
+                        rs2.getInt("rent_id"),
+                        rs2.getInt("rent_amount"),
+                        rs2.getString("rent_start_date"),
+                        rs2.getString("tenant"));
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
     //ease out so we can find client fast
+    public static void searchClient() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            System.out.print("Enter Client Name (partial allowed): ");
+            String name = sc.next();
+
+            String q =
+                    "SELECT * FROM client WHERE client_name LIKE ?";
+
+            PreparedStatement ps = conn.prepareStatement(q);
+            ps.setString(1, "%" + name + "%");
+
+            ResultSet rs = ps.executeQuery();
+
+            System.out.printf("%-5s %-20s %-15s %-25s%n",
+                    "ID","Name","Phone","Email");
+            System.out.println("-----------------------------------------------------------");
+
+            boolean found = false;
+
+            while(rs.next()){
+                found = true;
+                System.out.printf("%-5d %-20s %-15s %-25s%n",
+                        rs.getInt("client_id"),
+                        rs.getString("client_name"),
+                        rs.getString("client_phone"),
+                        rs.getString("client_email"));
+            }
+
+            if(!found){
+                System.out.println("No client found.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
     //ease out on listing rule
+    public static void listAvailableProperties() {
+        try {
+            Connection conn = DBConnection.getConnection();
+
+            String q =
+                    "SELECT property_id, address, city, bedrooms, size_sqft " +
+                            "FROM property " +
+                            "WHERE availability_status = true";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-5s %-25s %-15s %-10s %-10s%n",
+                    "ID","Address","City","Beds","Size");
+            System.out.println("-------------------------------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-5d %-25s %-15s %-10d %-10d%n",
+                        rs.getInt("property_id"),
+                        rs.getString("address"),
+                        rs.getString("city"),
+                        rs.getInt("bedrooms"),
+                        rs.getInt("size_sqft"));
+            }
+
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
 }

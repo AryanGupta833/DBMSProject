@@ -591,9 +591,26 @@ public class SalesService {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Top Agent by Sales Revenue");
-            System.out.println("Fetching agent with highest revenue...");
 
-            // TODO: JOIN + GROUP BY + SUM
+            String q =
+                    "SELECT a.name, SUM(s.sales_price) AS total_revenue " +
+                            "FROM sales s " +
+                            "JOIN agent a ON s.agent_id = a.agent_id " +
+                            "GROUP BY a.name " +
+                            "ORDER BY total_revenue DESC LIMIT 1";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-20s %-15s%n","Agent","Revenue");
+            System.out.println("----------------------------------------");
+
+            if(rs.next()){
+                System.out.printf("%-20s %-15d%n",
+                        rs.getString("name"),
+                        rs.getInt("total_revenue"));
+            } else {
+                System.out.println("No data found.");
+            }
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -605,9 +622,23 @@ public class SalesService {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Sales by City");
-            System.out.println("Fetching sales grouped by property city...");
 
-            // TODO: JOIN property + GROUP BY city
+            String q =
+                    "SELECT p.city, SUM(s.sales_price) AS total_sales " +
+                            "FROM sales s " +
+                            "JOIN property p ON s.property_id = p.property_id " +
+                            "GROUP BY p.city";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-20s %-15s%n","City","Total Sales");
+            System.out.println("----------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-20s %-15d%n",
+                        rs.getString("city"),
+                        rs.getInt("total_sales"));
+            }
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -619,9 +650,28 @@ public class SalesService {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Monthly Sales Report");
-            System.out.println("Generating month-wise sales and revenue...");
 
-            // TODO: GROUP BY MONTH(sales_date)
+            String q =
+                    "SELECT MONTH(sales_date) AS month, " +
+                            "COUNT(*) AS total_sales, " +
+                            "SUM(sales_price) AS revenue " +
+                            "FROM sales " +
+                            "GROUP BY MONTH(sales_date) " +
+                            "ORDER BY month";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-10s %-15s %-15s%n",
+                    "Month","Sales","Revenue");
+
+            System.out.println("-------------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-10d %-15d %-15d%n",
+                        rs.getInt("month"),
+                        rs.getInt("total_sales"),
+                        rs.getInt("revenue"));
+            }
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -635,23 +685,60 @@ public class SalesService {
             int amount = InputUtil.getPositiveInt("Enter minimum amount");
 
             System.out.println("\n[Query] High Value Sales");
-            System.out.println("Fetching sales above ₹" + amount);
 
-            // TODO: WHERE sales_price >= ?
+            String q =
+                    "SELECT * FROM sales WHERE sales_price >= ?";
+
+            PreparedStatement ps = conn.prepareStatement(q);
+            ps.setInt(1, amount);
+
+            ResultSet rs = ps.executeQuery();
+
+            System.out.printf("%-8s %-12s %-12s %-10s %-10s %-10s %-10s%n",
+                    "ID","Price","Date","Buyer","Seller","Agent","Property");
+
+            System.out.println("--------------------------------------------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-8d %-12d %-12s %-10d %-10d %-10d %-10d%n",
+                        rs.getInt("sales_id"),
+                        rs.getInt("sales_price"),
+                        rs.getString("sales_date"),
+                        rs.getInt("buyer_id"),
+                        rs.getInt("seller_id"),
+                        rs.getInt("agent_id"),
+                        rs.getInt("property_id"));
+            }
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
-
     public static void unsoldProperties() {
         try {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Unsold Properties");
-            System.out.println("Fetching properties not present in sales table...");
 
-            // TODO: NOT EXISTS / LEFT JOIN
+            String q =
+                    "SELECT p.property_id, p.address, p.city " +
+                            "FROM property p " +
+                            "LEFT JOIN sales s ON p.property_id = s.property_id " +
+                            "WHERE s.property_id IS NULL";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-10s %-25s %-20s%n",
+                    "ID","Address","City");
+
+            System.out.println("---------------------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-10d %-25s %-20s%n",
+                        rs.getInt("property_id"),
+                        rs.getString("address"),
+                        rs.getString("city"));
+            }
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
@@ -663,9 +750,24 @@ public class SalesService {
             Connection conn = DBConnection.getConnection();
 
             System.out.println("\n[Query] Repeat Buyers");
-            System.out.println("Fetching buyers with multiple purchases...");
 
-            // TODO: GROUP BY buyer_id HAVING COUNT > 1
+            String q =
+                    "SELECT c.client_name, COUNT(s.sales_id) AS total_purchases " +
+                            "FROM sales s " +
+                            "JOIN client c ON s.buyer_id = c.client_id " +
+                            "GROUP BY s.buyer_id " +
+                            "HAVING COUNT(s.sales_id) > 1";
+
+            ResultSet rs = conn.prepareStatement(q).executeQuery();
+
+            System.out.printf("%-25s %-15s%n","Buyer","Purchases");
+            System.out.println("----------------------------------------");
+
+            while(rs.next()){
+                System.out.printf("%-25s %-15d%n",
+                        rs.getString("client_name"),
+                        rs.getInt("total_purchases"));
+            }
 
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
