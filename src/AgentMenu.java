@@ -16,15 +16,15 @@ public class AgentMenu {
                     "Filter by Bedrooms",
                     "Sort Properties by Price",
                     "Sort Properties by Size",
-                    "View My Properties",
+
 
 
                     // 🔹 Client Actions
                     "Add Client",
-                    "View My Clients",
+                    "View  Clients",
 
                     // 🔹 Sales Transactions
-                    "Sales Transaction",
+                    "Record Sales",
                     "View My Deals",
                     "Deals by Date Range (My Deals)",
                     "Total Deal Value (My Deals)",
@@ -77,7 +77,7 @@ public class AgentMenu {
                 case 6 -> PropertyService.filterByBedrooms();
                 case 7 -> PropertyService.sortPropertiesByPrice();
                 case 8 -> PropertyService.sortPropertiesBySize();
-                case 9 -> AgentService.viewAgentProperties();
+                //case 9 -> AgentService.viewAgentProperties();
 
                 // 🔹 Client
                 case 10 -> ClientService.addClient();
