@@ -18,6 +18,7 @@ public class AgentMenu {
                     "Sort Properties by Size",
                     "View My Properties",
 
+
                     // 🔹 Client Actions
                     "Add Client",
                     "View My Clients",
@@ -57,6 +58,7 @@ public class AgentMenu {
                     "My Workload",
                     "My Most Expensive Property",
                     "My Average Property Price",
+                    "Find Property by Id",
 
                     // 🔹 Exit
                     "Back"
@@ -116,9 +118,10 @@ public class AgentMenu {
                 case 37 -> AgentService.agentWorkload();
                 case 38 -> PropertyService.mostExpensiveProperty();
                 case 39 -> PropertyService.averagePropertyPrice();
+                case 40 -> PropertyService.findPropertyById();
 
                 // 🔹 Exit
-                case 40 -> {
+                case 41 -> {
                     return;
                 }
 
