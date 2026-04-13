@@ -114,18 +114,27 @@ public class DealService {
             String end = InputUtil.getStringInput("Enter end date (YYYY-MM-DD)");
 
             System.out.println("\n[Query] Deals by Date Range");
-            System.out.println("Fetching deals between " + start + " and " + end + "\n");
 
-            String query = """
-                SELECT 'Sale' as deal_type, sales_id as deal_id, property_id, 
-                       sales_date as deal_date, sales_price as amount, agent_id
-                FROM sales WHERE sales_date BETWEEN ? AND ?
-                UNION ALL
-                SELECT 'Rent' as deal_type, rent_id as deal_id, property_id, 
-                       rent_start_date as deal_date, rent_amount as amount, agent_id
-                FROM rent WHERE rent_start_date BETWEEN ? AND ?
-                ORDER BY deal_date DESC
-            """;
+            String roleFilter = "";
+            if ("AGENT".equals(Session.role)) {
+                System.out.println("Fetching your specific deals between " + start + " and " + end + "\n");
+                roleFilter = " AND agent_id = " + Session.userId;
+            } else if ("AGENCY".equals(Session.role)) {
+                System.out.println("Fetching deals for your agency between " + start + " and " + end + "\n");
+                // Join with agent table to filter by agency_id
+                roleFilter = " AND agent_id IN (SELECT agent_id FROM agent WHERE agency_id = " + Session.agencyId + ")";
+            } else {
+                System.out.println("Fetching all deals between " + start + " and " + end + "\n");
+            }
+
+            String query = "SELECT 'Sale' as deal_type, sales_id as deal_id, property_id, " +
+                    "sales_date as deal_date, sales_price as amount, agent_id " +
+                    "FROM sales WHERE (sales_date BETWEEN ? AND ?)" + roleFilter +
+                    " UNION ALL " +
+                    "SELECT 'Rent' as deal_type, rent_id as deal_id, property_id, " +
+                    "rent_start_date as deal_date, rent_amount as amount, agent_id " +
+                    "FROM rent WHERE (rent_start_date BETWEEN ? AND ?)" + roleFilter +
+                    " ORDER BY deal_date DESC";
 
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setString(1, start);
@@ -150,7 +159,7 @@ public class DealService {
             }
 
             if (rows.isEmpty()) {
-                System.out.println("❌ No deals found in the specified date range.");
+                System.out.println("❌ No deals found in the specified date range for your access level.");
             } else {
                 TableUtil.printTable(headers, rows);
             }
@@ -160,7 +169,6 @@ public class DealService {
         }
         InputUtil.pressEnterToContinue();
     }
-
     public static void totalDealValue() {
         try {
             Connection conn = DBConnection.getConnection();
