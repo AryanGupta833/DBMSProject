@@ -16,14 +16,15 @@ public class AgentMenu {
                     "Filter by Bedrooms",
                     "Sort Properties by Price",
                     "Sort Properties by Size",
-                    "View My Properties",
+
+
 
                     // 🔹 Client Actions
                     "Add Client",
-                    "View My Clients",
+                    "View  Clients",
 
                     // 🔹 Sales Transactions
-                    "Sales Transaction",
+                    "Record Sales",
                     "View My Deals",
                     "Deals by Date Range (My Deals)",
                     "Total Deal Value (My Deals)",
@@ -57,6 +58,7 @@ public class AgentMenu {
                     "My Workload",
                     "My Most Expensive Property",
                     "My Average Property Price",
+                    "Find Property by Id",
 
                     // 🔹 Exit
                     "Back"
@@ -75,7 +77,7 @@ public class AgentMenu {
                 case 6 -> PropertyService.filterByBedrooms();
                 case 7 -> PropertyService.sortPropertiesByPrice();
                 case 8 -> PropertyService.sortPropertiesBySize();
-                case 9 -> AgentService.viewAgentProperties();
+                //case 9 -> AgentService.viewAgentProperties();
 
                 // 🔹 Client
                 case 10 -> ClientService.addClient();
@@ -116,9 +118,10 @@ public class AgentMenu {
                 case 37 -> AgentService.agentWorkload();
                 case 38 -> PropertyService.mostExpensiveProperty();
                 case 39 -> PropertyService.averagePropertyPrice();
+                case 40 -> PropertyService.findPropertyById();
 
                 // 🔹 Exit
-                case 40 -> {
+                case 41 -> {
                     return;
                 }
 
