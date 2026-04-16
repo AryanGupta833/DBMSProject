@@ -119,9 +119,11 @@ public class AgentMenu {
                 case 38 -> PropertyService.mostExpensiveProperty();
                 case 39 -> PropertyService.averagePropertyPrice();
                 case 40 -> PropertyService.findPropertyById();
+                case 41 -> AgentService.makePropertyAvailable();
+                case 42 -> AgentService.assignRole();
 
                 // 🔹 Exit
-                case 41 -> {
+                case 43 -> {
                     return;
                 }
 
@@ -130,3 +132,6 @@ public class AgentMenu {
         }
     }
 }
+
+//assign role
+//make property available

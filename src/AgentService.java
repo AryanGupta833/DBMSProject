@@ -1326,4 +1326,12 @@ public class AgentService {
         InputUtil.pressEnterToContinue();
     }
 
+    public static void makePropertyAvailable() {
+
+    }
+
+
+      public static void assignRole() {
+
+     }
 }
