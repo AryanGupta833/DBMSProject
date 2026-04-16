@@ -3,15 +3,23 @@ import java.util.*;
 
 public class PropertyService {
 
-    // --- HELPER METHODS FOR UI ---
     private static void showPropertiesForSelection() throws Exception {
         Connection conn = DBConnection.getConnection();
 
         String baseQuery = """
-        SELECT p.property_id, p.city, p.locality, p.availability_status, p.agent_id, 
-               pt.listing_type, pt.price 
+        SELECT 
+            p.property_id, 
+            p.city, 
+            p.locality, 
+            p.availability_status, 
+            p.agent_id,
+            p.owner_id,
+            pt.listing_type, 
+            pt.price,
+            c.client_name AS owner_name
         FROM property p 
         LEFT JOIN property_type pt ON p.property_id = pt.property_id
+        LEFT JOIN client c ON p.owner_id = c.client_id
     """;
 
         PreparedStatement ps;
@@ -35,8 +43,10 @@ public class PropertyService {
         ResultSet rs = ps.executeQuery();
 
         List<String> headers = Arrays.asList(
-                "Property ID", "City", "Locality", "Available", "Agent ID", "Type", "Price"
+                "Property ID", "City", "Locality", "Available",
+                "Agent ID", "Owner ID", "Owner Name", "Type", "Price"
         );
+
         List<List<String>> rows = new ArrayList<>();
 
         while (rs.next()) {
@@ -46,6 +56,8 @@ public class PropertyService {
                     rs.getString("locality"),
                     rs.getBoolean("availability_status") ? "Yes" : "No",
                     String.valueOf(rs.getInt("agent_id")),
+                    String.valueOf(rs.getInt("owner_id")),
+                    rs.getString("owner_name") != null ? rs.getString("owner_name") : "N/A",
                     rs.getString("listing_type") != null ? rs.getString("listing_type") : "N/A",
                     rs.getString("price") != null ? "₹" + String.format("%,d", rs.getInt("price")) : "N/A"
             ));
@@ -846,7 +858,6 @@ public class PropertyService {
             int bedrooms = InputUtil.getPositiveInt("Enter Bedrooms");
 
             String baseQuery = "SELECT * FROM property p WHERE p.bedrooms = ?";
-
             PreparedStatement ps;
 
             if ("AGENT".equals(Session.role)) {
@@ -856,10 +867,10 @@ public class PropertyService {
 
             } else if ("AGENCY".equals(Session.role)) {
                 ps = conn.prepareStatement(baseQuery + """
-        AND p.agent_id IN (
-            SELECT agent_id FROM agent WHERE agency_id = ?
-        )
-    """);
+                AND p.agent_id IN (
+                    SELECT agent_id FROM agent WHERE agency_id = ?
+                )
+            """);
                 ps.setInt(1, bedrooms);
                 ps.setInt(2, Session.agencyId);
 
@@ -867,9 +878,29 @@ public class PropertyService {
                 ps = conn.prepareStatement(baseQuery);
                 ps.setInt(1, bedrooms);
             }
-            System.out.println("\n🛏️ Properties with " + bedrooms + " Bedrooms:");
-            printPropertyTable(ps.executeQuery());
-        } catch (Exception e) { System.out.println("❌ Error: " + e.getMessage()); }
+
+            ResultSet rs = ps.executeQuery();
+
+            System.out.println("\n🛏️ Properties with " + bedrooms + " Bedrooms:\n");
+
+            boolean found = false;
+
+            while (rs.next()) {
+                found = true;
+
+                System.out.println("Property ID: " + rs.getInt("property_id"));
+                System.out.println("Bedrooms   : " + rs.getInt("bedrooms"));
+                System.out.println("--------------------------------------");
+            }
+
+            if (!found) {
+                System.out.println("⚠️ No properties found.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+
         InputUtil.pressEnterToContinue();
     }
 
