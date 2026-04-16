@@ -159,15 +159,36 @@ public class SalesService {
 
             ResultSet rs = ps.executeQuery();
 
-            while(rs.next()){
-                System.out.println(rs.getInt("sales_id") + " | ₹" +
-                        rs.getInt("sales_price") + " | " +
-                        rs.getString("agent"));
+            // FIX: was bare println with no headers — now uses TableUtil
+            List<String> headers = Arrays.asList(
+                    "Sale ID", "Property Address", "Buyer", "Seller", "Agent",
+                    "Amount (\u20B9)", "Date"
+            );
+            List<List<String>> rows = new ArrayList<>();
+
+            while (rs.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("sales_id")),
+                        rs.getString("address"),
+                        rs.getString("buyer"),
+                        rs.getString("seller"),
+                        rs.getString("agent"),
+                        String.format("%,d", rs.getLong("sales_price")),
+                        rs.getString("sales_date")
+                ));
             }
 
-        } catch (Exception e){
-            System.out.println("Error: " + e.getMessage());
+            if (rows.isEmpty()) {
+                System.out.println("❌ No sales records found.");
+            } else {
+                System.out.println("\n\uD83D\uDCCA All Sales:");
+                TableUtil.printTable(headers, rows);
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
     public static void topBuyerInfo() {
         try {

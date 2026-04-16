@@ -564,48 +564,37 @@ public class ClientService {
         try {
             Connection conn = DBConnection.getConnection();
 
+            // BUG FIX: use GROUP_CONCAT so each client appears exactly once
+            // with all their roles in a single column — no manual map juggling.
             String query = """
-            SELECT c.client_id, c.client_name, cr.role
-            FROM client c
-            LEFT JOIN client_role cr ON c.client_id = cr.client_id
-            ORDER BY c.client_id
-        """;
+                SELECT c.client_id,
+                       c.client_name,
+                       COALESCE(GROUP_CONCAT(cr.role ORDER BY cr.role SEPARATOR ', '), 'No Role') AS roles
+                FROM client c
+                LEFT JOIN client_role cr ON c.client_id = cr.client_id
+                GROUP BY c.client_id, c.client_name
+                ORDER BY c.client_id
+            """;
 
             ResultSet rs = conn.createStatement().executeQuery(query);
-
-            Map<Integer, List<String>> map = new LinkedHashMap<>();
-
-            while (rs.next()) {
-                int id = rs.getInt("client_id");
-                String name = rs.getString("client_name");
-                String role = rs.getString("role");
-
-                map.putIfAbsent(id, new ArrayList<>());
-                if (role != null) map.get(id).add(role);
-
-                if (map.get(id).isEmpty() || !map.get(id).get(0).equals(name)) {
-                    map.get(id).add(0, name); // store name at index 0
-                }
-            }
 
             List<String> headers = Arrays.asList("Client ID", "Name", "Assigned Roles");
             List<List<String>> rows = new ArrayList<>();
 
-            for (var entry : map.entrySet()) {
-                int id = entry.getKey();
-                List<String> data = entry.getValue();
-                String name = data.get(0);
-                List<String> roles = data.size() > 1 ? data.subList(1, data.size()) : new ArrayList<>();
-
+            while (rs.next()) {
                 rows.add(Arrays.asList(
-                        String.valueOf(id),
-                        name,
-                        roles.isEmpty() ? "No Role" : String.join(", ", roles)
+                        String.valueOf(rs.getInt("client_id")),
+                        rs.getString("client_name"),
+                        rs.getString("roles")
                 ));
             }
 
-            System.out.println("\n📋 Clients With Roles:");
-            TableUtil.printTable(headers, rows);
+            if (rows.isEmpty()) {
+                System.out.println("❌ No clients found.");
+            } else {
+                System.out.println("\n\uD83D\uDCCB Clients With Roles:");
+                TableUtil.printTable(headers, rows);
+            }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
