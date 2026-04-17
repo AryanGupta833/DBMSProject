@@ -82,7 +82,9 @@ public class SalesService {
             FROM client c
             JOIN client_role cr ON c.client_id = cr.client_id
             JOIN property p ON c.client_id = p.owner_id
+            JOIN property_type pt on p.property_id = pt.property_id
             WHERE cr.role = 'Seller'
+            and pt.listing_type = 'sale'
             and p.availability_status = true
             ORDER BY c.client_name
         """;

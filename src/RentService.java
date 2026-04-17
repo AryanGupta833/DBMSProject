@@ -79,9 +79,9 @@ public class RentService {
                    p.bedrooms, p.size_sqft, p.availability_status,
                    pt.listing_type, pt.price
             FROM property p
-            LEFT JOIN property_type pt ON p.property_id = pt.property_id
-                   AND pt.listing_type = 'Rent'
+            JOIN property_type pt ON p.property_id = pt.property_id
             WHERE p.availability_status = true
+            AND pt.listing_type = 'Rent'
         """;
         PreparedStatement ps;
         if ("AGENT".equals(Session.role)) {
