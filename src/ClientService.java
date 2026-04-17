@@ -32,10 +32,28 @@ public class ClientService {
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
+
+            // --- CHECK 1: Ensure Client ID doesn't already exist ---
+            PreparedStatement checkPs = conn.prepareStatement("SELECT 1 FROM client WHERE client_id = ?");
+            checkPs.setInt(1, id);
+            if (checkPs.executeQuery().next()) {
+                System.out.println("❌ A client with ID " + id + " already exists!");
+                InputUtil.pressEnterToContinue();
+                return; // Stop execution here to save the user from filling out the rest
+            }
+
             String name = InputUtil.getStringInput("Enter Name");
             String phone = InputUtil.getPhone("Enter Phone (10 digits)");
             String email = InputUtil.getEmail("Enter Email");
             String address = InputUtil.getStringInput("Enter Address");
+
+            // --- CHECK 2: Explicit confirmation before modifying the database ---
+            System.out.println();
+            if (!InputUtil.confirm("Are you sure you want to add " + name + " as a new client?")) {
+                System.out.println("⚠️ Client addition cancelled.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
 
             String query = "INSERT INTO client VALUES (?, ?, ?, ?, ?)";
 
@@ -145,7 +163,6 @@ public class ClientService {
 
     public static void findClientById() {
         try {
-            showClientsForSelection();
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Client ID");
