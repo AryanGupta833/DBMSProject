@@ -4,7 +4,7 @@ import java.util.*;
 public class ClientService {
 
     // Helper method to show clients before asking for ID input
-    private static void showClientsForSelection() throws Exception {
+    static void showClientsForSelection() throws Exception {
         Connection conn = DBConnection.getConnection();
         ResultSet rs = conn.createStatement().executeQuery("SELECT client_id, client_name, client_phone FROM client");
 

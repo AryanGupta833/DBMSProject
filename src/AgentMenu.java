@@ -16,6 +16,7 @@ public class AgentMenu {
                     "Filter by Bedrooms",
                     "Sort Properties by Price",
                     "Sort Properties by Size",
+                    "View Top Agent",
 
 
 
@@ -59,6 +60,8 @@ public class AgentMenu {
                     "My Most Expensive Property",
                     "My Average Property Price",
                     "Find Property by Id",
+                    "Make Property Available",
+                    "Assign Role To Client",
 
                     // 🔹 Exit
                     "Back"
@@ -77,7 +80,7 @@ public class AgentMenu {
                 case 6 -> PropertyService.filterByBedrooms();
                 case 7 -> PropertyService.sortPropertiesByPrice();
                 case 8 -> PropertyService.sortPropertiesBySize();
-                //case 9 -> AgentService.viewAgentProperties();
+                case 9 -> AgentService.topAgent();
 
                 // 🔹 Client
                 case 10 -> ClientService.addClient();

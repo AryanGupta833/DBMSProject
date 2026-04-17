@@ -774,11 +774,11 @@ public class PropertyService {
             String city = InputUtil.getStringInput("Enter City");
 
             String baseQuery = """
-    SELECT p.*, pt.listing_type, pt.price
-    FROM property p
-    LEFT JOIN property_type pt ON p.property_id = pt.property_id
-    WHERE p.city = ?
-""";
+                SELECT p.*, pt.listing_type, pt.price 
+                FROM property p 
+                LEFT JOIN property_type pt ON p.property_id = pt.property_id 
+                WHERE p.city = ?
+            """;
 
             PreparedStatement ps;
 
@@ -789,10 +789,10 @@ public class PropertyService {
 
             } else if ("AGENCY".equals(Session.role)) {
                 ps = conn.prepareStatement(baseQuery + """
-        AND p.agent_id IN (
-            SELECT agent_id FROM agent WHERE agency_id = ?
-        )
-    """);
+                    AND p.agent_id IN (
+                        SELECT agent_id FROM agent WHERE agency_id = ?
+                    )
+                """);
                 ps.setString(1, city);
                 ps.setInt(2, Session.agencyId);
 
@@ -800,24 +800,58 @@ public class PropertyService {
                 ps = conn.prepareStatement(baseQuery);
                 ps.setString(1, city);
             }
-            System.out.println("\n🔍 Properties in " + city + ":");
-            printPropertyTable(ps.executeQuery());
-        } catch (Exception e) { System.out.println("❌ Error: " + e.getMessage()); }
+
+            ResultSet rs = ps.executeQuery();
+
+            // Showing all table attributes
+            List<String> headers = Arrays.asList(
+                    "ID", "Address", "City", "Locality", "Size(sqft)", "Beds",
+                    "Built", "Available", "Listing Date", "Agent ID", "Owner ID", "Type", "Price"
+            );
+            List<List<String>> rows = new ArrayList<>();
+
+            while (rs.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("property_id")),
+                        rs.getString("address"),
+                        rs.getString("city"),
+                        rs.getString("locality"),
+                        String.valueOf(rs.getInt("size_sqft")),
+                        String.valueOf(rs.getInt("bedrooms")),
+                        rs.getString("year_built"),
+                        rs.getBoolean("availability_status") ? "Yes" : "No",
+                        rs.getString("listing_date"),
+                        String.valueOf(rs.getInt("agent_id")),
+                        String.valueOf(rs.getInt("owner_id")),
+                        rs.getString("listing_type") != null ? rs.getString("listing_type") : "N/A",
+                        rs.getString("price") != null ? "₹" + String.format("%,d", rs.getInt("price")) : "N/A"
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ No properties found in the city: " + city);
+            } else {
+                System.out.println("\n🔍 Full Property Details in " + city + ":");
+                TableUtil.printTable(headers, rows);
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
         InputUtil.pressEnterToContinue();
     }
 
     public static void searchPropertyByLocality() {
         try {
             Connection conn = DBConnection.getConnection();
-
             String locality = InputUtil.getStringInput("Enter Locality");
 
             String query = """
-            SELECT p.*, pt.listing_type, pt.price
-            FROM property p
-            LEFT JOIN property_type pt ON p.property_id = pt.property_id
-            WHERE p.locality = ?
-        """;
+                SELECT p.*, pt.listing_type, pt.price 
+                FROM property p 
+                LEFT JOIN property_type pt ON p.property_id = pt.property_id 
+                WHERE p.locality = ?
+            """;
 
             PreparedStatement ps;
 
@@ -828,10 +862,10 @@ public class PropertyService {
 
             } else if ("AGENCY".equals(Session.role)) {
                 ps = conn.prepareStatement(query + """
-                AND p.agent_id IN (
-                    SELECT agent_id FROM agent WHERE agency_id = ?
-                )
-            """);
+                    AND p.agent_id IN (
+                        SELECT agent_id FROM agent WHERE agency_id = ?
+                    )
+                """);
                 ps.setString(1, locality);
                 ps.setInt(2, Session.agencyId);
 
@@ -842,14 +876,42 @@ public class PropertyService {
 
             ResultSet rs = ps.executeQuery();
 
+            // Showing all table attributes
+            List<String> headers = Arrays.asList(
+                    "ID", "Address", "City", "Locality", "Size(sqft)", "Beds",
+                    "Built", "Available", "Listing Date", "Agent ID", "Owner ID", "Type", "Price"
+            );
+            List<List<String>> rows = new ArrayList<>();
+
             while (rs.next()) {
-                System.out.println(rs.getInt("property_id") + " | " +
-                        rs.getString("locality") + " | ₹" + rs.getInt("price"));
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("property_id")),
+                        rs.getString("address"),
+                        rs.getString("city"),
+                        rs.getString("locality"),
+                        String.valueOf(rs.getInt("size_sqft")),
+                        String.valueOf(rs.getInt("bedrooms")),
+                        rs.getString("year_built"),
+                        rs.getBoolean("availability_status") ? "Yes" : "No",
+                        rs.getString("listing_date"),
+                        String.valueOf(rs.getInt("agent_id")),
+                        String.valueOf(rs.getInt("owner_id")),
+                        rs.getString("listing_type") != null ? rs.getString("listing_type") : "N/A",
+                        rs.getString("price") != null ? "₹" + String.format("%,d", rs.getInt("price")) : "N/A"
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ No properties found in this locality.");
+            } else {
+                System.out.println("\n🔍 Full Property Details in " + locality + ":");
+                TableUtil.printTable(headers, rows);
             }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void filterByBedrooms() {

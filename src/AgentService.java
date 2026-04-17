@@ -1393,11 +1393,161 @@ public class AgentService {
     }
 
     public static void makePropertyAvailable() {
+        try {
+            Connection conn = DBConnection.getConnection();
+            int agentId = Session.userId;
 
+            // Show all properties assigned to that agent before asking for ID
+            PreparedStatement showPs = conn.prepareStatement(
+                    "SELECT property_id, address, locality, availability_status FROM property WHERE agent_id = ?"
+            );
+            showPs.setInt(1, agentId);
+            ResultSet rsProps = showPs.executeQuery();
+
+            List<String> headers = Arrays.asList("Property ID", "Address", "Locality", "Available");
+            List<List<String>> rows = new ArrayList<>();
+            while (rsProps.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rsProps.getInt("property_id")),
+                        rsProps.getString("address"),
+                        rsProps.getString("locality"),
+                        rsProps.getBoolean("availability_status") ? "Yes" : "No"
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ No properties assigned to you.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            System.out.println("\n📋 Properties Assigned to You:");
+            TableUtil.printTable(headers, rows);
+
+            // Ask for Property ID
+            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+
+            // Check property existence and availability
+            PreparedStatement checkPs = conn.prepareStatement(
+                    "SELECT availability_status FROM property WHERE property_id = ? AND agent_id = ?"
+            );
+            checkPs.setInt(1, propertyId);
+            checkPs.setInt(2, agentId);
+            ResultSet rsCheck = checkPs.executeQuery();
+
+            if (rsCheck.next()) {
+                boolean isAvailable = rsCheck.getBoolean("availability_status");
+                if (isAvailable) {
+                    System.out.println("⚠️ Property is already available");
+                } else {
+                    PreparedStatement updatePs = conn.prepareStatement(
+                            "UPDATE property SET availability_status = true WHERE property_id = ?"
+                    );
+                    updatePs.setInt(1, propertyId);
+                    updatePs.executeUpdate();
+                    System.out.println("✅ Property availability status set to true");
+                }
+            } else {
+                System.out.println("❌ Property not found or not assigned to you");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+        InputUtil.pressEnterToContinue();
     }
 
 
-      public static void assignRole() {
+    public static void assignRole() {
+        try {
+            Connection conn = DBConnection.getConnection();
+            int agentId = Session.userId;
 
-     }
+            // Show clients already assigned to this agent (clients who own properties managed by this agent)
+            String clientQuery = """
+                SELECT DISTINCT c.client_id, c.client_name, c.client_phone 
+                FROM client c
+                JOIN property p ON c.client_id = p.owner_id
+                WHERE p.agent_id = ?
+            """;
+
+            PreparedStatement showClients = conn.prepareStatement(clientQuery);
+            showClients.setInt(1, agentId);
+            ResultSet rsClients = showClients.executeQuery();
+
+            List<String> headers = Arrays.asList("Client ID", "Name", "Phone");
+            List<List<String>> rows = new ArrayList<>();
+
+            while (rsClients.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rsClients.getInt("client_id")),
+                        rsClients.getString("client_name"),
+                        rsClients.getString("client_phone")
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ You have no clients assigned to you.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            System.out.println("\n📋 Clients Assigned to You:");
+            TableUtil.printTable(headers, rows);
+
+            // Ask for Client ID
+            int clientId = InputUtil.getPositiveInt("Enter Client ID");
+
+            // Verify the entered Client ID actually belongs to this agent
+            PreparedStatement checkProp = conn.prepareStatement(
+                    "SELECT 1 FROM property WHERE owner_id = ? AND agent_id = ?"
+            );
+            checkProp.setInt(1, clientId);
+            checkProp.setInt(2, agentId);
+            ResultSet rsCheckProp = checkProp.executeQuery();
+
+            if (!rsCheckProp.next()) {
+                System.out.println("❌ Client not assigned to you or invalid ID.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            // Loop to ensure correct role input
+            String role = "";
+            while (true) {
+                role = InputUtil.getStringInput("Enter Role (Buyer, Seller, or Tenant):");
+                if (role.equalsIgnoreCase("Buyer") || role.equalsIgnoreCase("Seller") || role.equalsIgnoreCase("Tenant")) {
+                    // Capitalize correctly for database consistency (e.g., "Buyer")
+                    role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
+                    break;
+                } else {
+                    System.out.println("❌ Wrong role. Try again.");
+                }
+            }
+
+            // Check if the role already exists for this client
+            PreparedStatement checkRole = conn.prepareStatement(
+                    "SELECT 1 FROM client_role WHERE client_id = ? AND role = ?"
+            );
+            checkRole.setInt(1, clientId);
+            checkRole.setString(2, role);
+
+            if (checkRole.executeQuery().next()) {
+                System.out.println("⚠️ Role already exists for this client.");
+            } else {
+                // Assign the role
+                PreparedStatement assignRole = conn.prepareStatement(
+                        "INSERT INTO client_role (client_id, role) VALUES (?, ?)"
+                );
+                assignRole.setInt(1, clientId);
+                assignRole.setString(2, role);
+                assignRole.executeUpdate();
+                System.out.println("✅ Role assigned successfully in client_role.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+        InputUtil.pressEnterToContinue();
+    }
 }
