@@ -12,6 +12,28 @@ public class AgentService {
             return InputUtil.getPositiveInt("Enter Agent ID");
         }
     }
+    private static void showAgenciesForSelection() throws Exception {
+        Connection conn = DBConnection.getConnection();
+        ResultSet rs = conn.createStatement().executeQuery("SELECT agency_id, agency_name, agency_city FROM enterprise");
+
+        List<String> headers = Arrays.asList("Agency ID", "Agency Name", "City");
+        List<List<String>> rows = new ArrayList<>();
+
+        while (rs.next()) {
+            rows.add(Arrays.asList(
+                    String.valueOf(rs.getInt("agency_id")),
+                    rs.getString("agency_name"),
+                    rs.getString("agency_city")
+            ));
+        }
+
+        if (!rows.isEmpty()) {
+            System.out.println("\n🏢 Available Agencies:");
+            TableUtil.printTable(headers, rows);
+        } else {
+            System.out.println("❌ No agencies available. Please add an agency first.");
+        }
+    }
 
     private static void showAgentsForSelection() throws Exception {
         try {
@@ -56,13 +78,47 @@ public class AgentService {
             Connection conn = DBConnection.getConnection();
 
             int id = InputUtil.getPositiveInt("Enter Agent ID");
+
+            // Check if agent ID already exists
+            PreparedStatement checkAgent = conn.prepareStatement("SELECT 1 FROM agent WHERE agent_id = ?");
+            checkAgent.setInt(1, id);
+            if (checkAgent.executeQuery().next()) {
+                System.out.println("❌ Agent ID already exists!");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
             String name = InputUtil.getStringInput("Enter Name");
             String phone = InputUtil.getPhone("Enter Phone (10 digits)");
             String email = InputUtil.getEmail("Enter Email");
             int exp = InputUtil.getPositiveInt("Enter Experience (years)");
+
+            // Show agencies before asking for Agency ID
+            showAgenciesForSelection();
             int agencyId = InputUtil.getPositiveInt("Enter Agency ID");
 
-            String query = "INSERT INTO agent VALUES (?, ?, ?, ?, ?, ?)";
+            // Check if agency exists
+            PreparedStatement checkAgency = conn.prepareStatement("SELECT 1 FROM enterprise WHERE agency_id = ?");
+            checkAgency.setInt(1, agencyId);
+            if (!checkAgency.executeQuery().next()) {
+                System.out.println("❌ Agency ID does not exist!");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            // The schema requires a password column
+            String password = InputUtil.getMaskedInput("Enter Password (or press Enter for default 'agent123'): ");
+            if (password.isEmpty()) password = "agent123";
+
+            System.out.println();
+            if (!InputUtil.confirm("Are you sure you want to add " + name + " as a new agent?")) {
+                System.out.println("⚠️ Agent addition cancelled.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            // Specify exact columns to fix the column count mismatch error
+            String query = "INSERT INTO agent (agent_id, name, phone, email, experience_year, agency_id, password) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
             PreparedStatement ps = conn.prepareStatement(query);
             ps.setInt(1, id);
@@ -71,6 +127,7 @@ public class AgentService {
             ps.setString(4, email);
             ps.setInt(5, exp);
             ps.setInt(6, agencyId);
+            ps.setString(7, password);
 
             ps.executeUpdate();
             System.out.println("✅ Agent added successfully");
@@ -380,6 +437,7 @@ public class AgentService {
             if ("AGENCY".equals(Session.role)) {
                 agencyId = Session.agencyId;
             } else {
+                showAgenciesForSelection(); // Show agencies first
                 agencyId = InputUtil.getPositiveInt("Enter Agency ID");
             }
 
@@ -624,9 +682,15 @@ public class AgentService {
             ResultSet rs = ps.executeQuery();
 
             if (rs.next()) {
-                System.out.println("\n🏆 TOP AGENT:");
-                System.out.println("Name: " + rs.getString("name"));
-                System.out.println("Total Deals: " + rs.getInt("total"));
+                System.out.println("\n🏆 TOP PERFORMING AGENT:");
+                List<String> headers = Arrays.asList("Agent ID", "Name", "Total Deals");
+                List<List<String>> rows = new ArrayList<>();
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("agent_id")),
+                        rs.getString("name"),
+                        String.valueOf(rs.getInt("total"))
+                ));
+                TableUtil.printTable(headers, rows);
             } else {
                 System.out.println("❌ No data found");
             }
@@ -645,7 +709,7 @@ public class AgentService {
             int agentId = resolveAgentId();
 
             PreparedStatement ps = conn.prepareStatement("""
-                    SELECT p.property_id, p.city, p.locality, pt.listing_type, pt.price
+                    SELECT p.property_id, p.city, p.locality, p.availability_status, pt.listing_type, pt.price
                     FROM property p
                     LEFT JOIN property_type pt ON p.property_id = pt.property_id
                     WHERE p.agent_id=?
@@ -655,16 +719,18 @@ public class AgentService {
 
             ResultSet rs = ps.executeQuery();
 
-            List<String> headers = Arrays.asList("Property ID", "City", "Locality", "Type", "Price");
+            List<String> headers = Arrays.asList("Property ID", "City", "Locality", "Status", "Type", "Price");
             List<List<String>> rows = new ArrayList<>();
 
             while (rs.next()) {
+                String status = rs.getBoolean("availability_status") ? Color.GREEN + "Available" + Color.RESET : Color.RED + "Unavailable" + Color.RESET;
                 rows.add(Arrays.asList(
                         String.valueOf(rs.getInt("property_id")),
                         rs.getString("city"),
                         rs.getString("locality"),
-                        rs.getString("listing_type"),
-                        "₹" + String.format("%,d", rs.getInt("price"))
+                        status,
+                        rs.getString("listing_type") == null ? "N/A" : rs.getString("listing_type"),
+                        rs.getObject("price") == null ? "N/A" : "₹" + String.format("%,d", rs.getInt("price"))
                 ));
             }
 
@@ -1327,11 +1393,161 @@ public class AgentService {
     }
 
     public static void makePropertyAvailable() {
+        try {
+            Connection conn = DBConnection.getConnection();
+            int agentId = Session.userId;
 
+            // Show all properties assigned to that agent before asking for ID
+            PreparedStatement showPs = conn.prepareStatement(
+                    "SELECT property_id, address, locality, availability_status FROM property WHERE agent_id = ?"
+            );
+            showPs.setInt(1, agentId);
+            ResultSet rsProps = showPs.executeQuery();
+
+            List<String> headers = Arrays.asList("Property ID", "Address", "Locality", "Available");
+            List<List<String>> rows = new ArrayList<>();
+            while (rsProps.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rsProps.getInt("property_id")),
+                        rsProps.getString("address"),
+                        rsProps.getString("locality"),
+                        rsProps.getBoolean("availability_status") ? "Yes" : "No"
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ No properties assigned to you.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            System.out.println("\n📋 Properties Assigned to You:");
+            TableUtil.printTable(headers, rows);
+
+            // Ask for Property ID
+            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+
+            // Check property existence and availability
+            PreparedStatement checkPs = conn.prepareStatement(
+                    "SELECT availability_status FROM property WHERE property_id = ? AND agent_id = ?"
+            );
+            checkPs.setInt(1, propertyId);
+            checkPs.setInt(2, agentId);
+            ResultSet rsCheck = checkPs.executeQuery();
+
+            if (rsCheck.next()) {
+                boolean isAvailable = rsCheck.getBoolean("availability_status");
+                if (isAvailable) {
+                    System.out.println("⚠️ Property is already available");
+                } else {
+                    PreparedStatement updatePs = conn.prepareStatement(
+                            "UPDATE property SET availability_status = true WHERE property_id = ?"
+                    );
+                    updatePs.setInt(1, propertyId);
+                    updatePs.executeUpdate();
+                    System.out.println("✅ Property availability status set to true");
+                }
+            } else {
+                System.out.println("❌ Property not found or not assigned to you");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+        InputUtil.pressEnterToContinue();
     }
 
 
-      public static void assignRole() {
+    public static void assignRole() {
+        try {
+            Connection conn = DBConnection.getConnection();
+            int agentId = Session.userId;
 
-     }
+            // Show clients already assigned to this agent (clients who own properties managed by this agent)
+            String clientQuery = """
+                SELECT DISTINCT c.client_id, c.client_name, c.client_phone 
+                FROM client c
+                JOIN property p ON c.client_id = p.owner_id
+                WHERE p.agent_id = ?
+            """;
+
+            PreparedStatement showClients = conn.prepareStatement(clientQuery);
+            showClients.setInt(1, agentId);
+            ResultSet rsClients = showClients.executeQuery();
+
+            List<String> headers = Arrays.asList("Client ID", "Name", "Phone");
+            List<List<String>> rows = new ArrayList<>();
+
+            while (rsClients.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rsClients.getInt("client_id")),
+                        rsClients.getString("client_name"),
+                        rsClients.getString("client_phone")
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ You have no clients assigned to you.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            System.out.println("\n📋 Clients Assigned to You:");
+            TableUtil.printTable(headers, rows);
+
+            // Ask for Client ID
+            int clientId = InputUtil.getPositiveInt("Enter Client ID");
+
+            // Verify the entered Client ID actually belongs to this agent
+            PreparedStatement checkProp = conn.prepareStatement(
+                    "SELECT 1 FROM property WHERE owner_id = ? AND agent_id = ?"
+            );
+            checkProp.setInt(1, clientId);
+            checkProp.setInt(2, agentId);
+            ResultSet rsCheckProp = checkProp.executeQuery();
+
+            if (!rsCheckProp.next()) {
+                System.out.println("❌ Client not assigned to you or invalid ID.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            // Loop to ensure correct role input
+            String role = "";
+            while (true) {
+                role = InputUtil.getStringInput("Enter Role (Buyer, Seller, or Tenant):");
+                if (role.equalsIgnoreCase("Buyer") || role.equalsIgnoreCase("Seller") || role.equalsIgnoreCase("Tenant")) {
+                    // Capitalize correctly for database consistency (e.g., "Buyer")
+                    role = role.substring(0, 1).toUpperCase() + role.substring(1).toLowerCase();
+                    break;
+                } else {
+                    System.out.println("❌ Wrong role. Try again.");
+                }
+            }
+
+            // Check if the role already exists for this client
+            PreparedStatement checkRole = conn.prepareStatement(
+                    "SELECT 1 FROM client_role WHERE client_id = ? AND role = ?"
+            );
+            checkRole.setInt(1, clientId);
+            checkRole.setString(2, role);
+
+            if (checkRole.executeQuery().next()) {
+                System.out.println("⚠️ Role already exists for this client.");
+            } else {
+                // Assign the role
+                PreparedStatement assignRole = conn.prepareStatement(
+                        "INSERT INTO client_role (client_id, role) VALUES (?, ?)"
+                );
+                assignRole.setInt(1, clientId);
+                assignRole.setString(2, role);
+                assignRole.executeUpdate();
+                System.out.println("✅ Role assigned successfully in client_role.");
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
+        InputUtil.pressEnterToContinue();
+    }
 }

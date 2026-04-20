@@ -774,11 +774,11 @@ public class PropertyService {
             String city = InputUtil.getStringInput("Enter City");
 
             String baseQuery = """
-    SELECT p.*, pt.listing_type, pt.price
-    FROM property p
-    LEFT JOIN property_type pt ON p.property_id = pt.property_id
-    WHERE p.city = ?
-""";
+                SELECT p.*, pt.listing_type, pt.price 
+                FROM property p 
+                LEFT JOIN property_type pt ON p.property_id = pt.property_id 
+                WHERE p.city = ?
+            """;
 
             PreparedStatement ps;
 
@@ -789,10 +789,10 @@ public class PropertyService {
 
             } else if ("AGENCY".equals(Session.role)) {
                 ps = conn.prepareStatement(baseQuery + """
-        AND p.agent_id IN (
-            SELECT agent_id FROM agent WHERE agency_id = ?
-        )
-    """);
+                    AND p.agent_id IN (
+                        SELECT agent_id FROM agent WHERE agency_id = ?
+                    )
+                """);
                 ps.setString(1, city);
                 ps.setInt(2, Session.agencyId);
 
@@ -800,24 +800,58 @@ public class PropertyService {
                 ps = conn.prepareStatement(baseQuery);
                 ps.setString(1, city);
             }
-            System.out.println("\n🔍 Properties in " + city + ":");
-            printPropertyTable(ps.executeQuery());
-        } catch (Exception e) { System.out.println("❌ Error: " + e.getMessage()); }
+
+            ResultSet rs = ps.executeQuery();
+
+            // Showing all table attributes
+            List<String> headers = Arrays.asList(
+                    "ID", "Address", "City", "Locality", "Size(sqft)", "Beds",
+                    "Built", "Available", "Listing Date", "Agent ID", "Owner ID", "Type", "Price"
+            );
+            List<List<String>> rows = new ArrayList<>();
+
+            while (rs.next()) {
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("property_id")),
+                        rs.getString("address"),
+                        rs.getString("city"),
+                        rs.getString("locality"),
+                        String.valueOf(rs.getInt("size_sqft")),
+                        String.valueOf(rs.getInt("bedrooms")),
+                        rs.getString("year_built"),
+                        rs.getBoolean("availability_status") ? "Yes" : "No",
+                        rs.getString("listing_date"),
+                        String.valueOf(rs.getInt("agent_id")),
+                        String.valueOf(rs.getInt("owner_id")),
+                        rs.getString("listing_type") != null ? rs.getString("listing_type") : "N/A",
+                        rs.getString("price") != null ? "₹" + String.format("%,d", rs.getInt("price")) : "N/A"
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ No properties found in the city: " + city);
+            } else {
+                System.out.println("\n🔍 Full Property Details in " + city + ":");
+                TableUtil.printTable(headers, rows);
+            }
+
+        } catch (Exception e) {
+            System.out.println("❌ Error: " + e.getMessage());
+        }
         InputUtil.pressEnterToContinue();
     }
 
     public static void searchPropertyByLocality() {
         try {
             Connection conn = DBConnection.getConnection();
-
             String locality = InputUtil.getStringInput("Enter Locality");
 
             String query = """
-            SELECT p.*, pt.listing_type, pt.price
-            FROM property p
-            LEFT JOIN property_type pt ON p.property_id = pt.property_id
-            WHERE p.locality = ?
-        """;
+                SELECT p.*, pt.listing_type, pt.price 
+                FROM property p 
+                LEFT JOIN property_type pt ON p.property_id = pt.property_id 
+                WHERE p.locality = ?
+            """;
 
             PreparedStatement ps;
 
@@ -828,10 +862,10 @@ public class PropertyService {
 
             } else if ("AGENCY".equals(Session.role)) {
                 ps = conn.prepareStatement(query + """
-                AND p.agent_id IN (
-                    SELECT agent_id FROM agent WHERE agency_id = ?
-                )
-            """);
+                    AND p.agent_id IN (
+                        SELECT agent_id FROM agent WHERE agency_id = ?
+                    )
+                """);
                 ps.setString(1, locality);
                 ps.setInt(2, Session.agencyId);
 
@@ -842,14 +876,42 @@ public class PropertyService {
 
             ResultSet rs = ps.executeQuery();
 
+            // Showing all table attributes
+            List<String> headers = Arrays.asList(
+                    "ID", "Address", "City", "Locality", "Size(sqft)", "Beds",
+                    "Built", "Available", "Listing Date", "Agent ID", "Owner ID", "Type", "Price"
+            );
+            List<List<String>> rows = new ArrayList<>();
+
             while (rs.next()) {
-                System.out.println(rs.getInt("property_id") + " | " +
-                        rs.getString("locality") + " | ₹" + rs.getInt("price"));
+                rows.add(Arrays.asList(
+                        String.valueOf(rs.getInt("property_id")),
+                        rs.getString("address"),
+                        rs.getString("city"),
+                        rs.getString("locality"),
+                        String.valueOf(rs.getInt("size_sqft")),
+                        String.valueOf(rs.getInt("bedrooms")),
+                        rs.getString("year_built"),
+                        rs.getBoolean("availability_status") ? "Yes" : "No",
+                        rs.getString("listing_date"),
+                        String.valueOf(rs.getInt("agent_id")),
+                        String.valueOf(rs.getInt("owner_id")),
+                        rs.getString("listing_type") != null ? rs.getString("listing_type") : "N/A",
+                        rs.getString("price") != null ? "₹" + String.format("%,d", rs.getInt("price")) : "N/A"
+                ));
+            }
+
+            if (rows.isEmpty()) {
+                System.out.println("❌ No properties found in this locality.");
+            } else {
+                System.out.println("\n🔍 Full Property Details in " + locality + ":");
+                TableUtil.printTable(headers, rows);
             }
 
         } catch (Exception e) {
             System.out.println("❌ Error: " + e.getMessage());
         }
+        InputUtil.pressEnterToContinue();
     }
 
     public static void filterByBedrooms() {
@@ -905,86 +967,109 @@ public class PropertyService {
     }
 
     public static void filterBySizeRange() {
-        try {
-            Connection conn = DBConnection.getConnection();
-
+        try (Connection conn = DBConnection.getConnection()) {
             int min = InputUtil.getPositiveInt("Enter Min Size");
             int max = InputUtil.getPositiveInt("Enter Max Size");
 
-            String query = "SELECT * FROM property p WHERE p.size_sqft BETWEEN ? AND ?";
+            // 1. Base query using the table name 'property'
+            StringBuilder sql = new StringBuilder("SELECT * FROM property WHERE size_sqft BETWEEN ? AND ?");
 
-            PreparedStatement ps;
-
+            // 2. Append role-based security filters
             if ("AGENT".equals(Session.role)) {
-                ps = conn.prepareStatement(query + " AND p.agent_id = ?");
-                ps.setInt(1, min);
-                ps.setInt(2, max);
-                ps.setInt(3, Session.userId);
-
+                sql.append(" AND agent_id = ?");
             } else if ("AGENCY".equals(Session.role)) {
-                ps = conn.prepareStatement(query + """
-                AND p.agent_id IN (
-                    SELECT agent_id FROM agent WHERE agency_id = ?
-                )
-            """);
-                ps.setInt(1, min);
-                ps.setInt(2, max);
-                ps.setInt(3, Session.agencyId);
-
-            } else {
-                ps = conn.prepareStatement(query);
-                ps.setInt(1, min);
-                ps.setInt(2, max);
+                sql.append(" AND agent_id IN (SELECT agent_id FROM agent WHERE agency_id = ?)");
             }
 
-            ResultSet rs = ps.executeQuery();
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
 
-            while (rs.next()) {
-                System.out.println(rs.getInt("property_id") + " | " + rs.getInt("size_sqft"));
+            // 3. Set standard parameters
+            ps.setInt(1, min);
+            ps.setInt(2, max);
+
+            // 4. Set role-based parameters
+            if ("AGENT".equals(Session.role)) {
+                ps.setInt(3, Session.userId);
+            } else if ("AGENCY".equals(Session.role)) {
+                ps.setInt(3, Session.agencyId);
+            }
+
+            // 5. Execute and display all details
+            try (ResultSet rs = ps.executeQuery()) {
+                boolean found = false;
+
+                while (rs.next()) {
+                    found = true;
+                    System.out.println("------------------------------------");
+                    System.out.println("Property ID:   " + rs.getInt("property_id"));
+                    System.out.println("Address:       " + rs.getString("address"));
+                    System.out.println("City:          " + rs.getString("city"));
+                    System.out.println("Size (sqft):   " + rs.getInt("size_sqft"));
+                    System.out.println("Bedrooms:      " + rs.getInt("bedrooms"));
+                    System.out.println("Year Built:    " + rs.getInt("year_built"));
+                    System.out.println("Available:     " + (rs.getBoolean("availability_status") ? "Yes" : "No"));
+                }
+
+                if (!found) {
+                    System.out.println("⚠️ No properties found in this size range.");
+                }
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println("❌ Database Error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public static void filterByAvailability() {
-        try {
-            Connection conn = DBConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection()) {
 
-            String status = InputUtil.getStringInput("Enter Availability");
+            // 1. Convert user input "yes"/"no" to a boolean (1 or 0)
+            String input = InputUtil.getStringInput("Enter Availability (yes/no)");
+            boolean isAvailable = "yes".equalsIgnoreCase(input);
 
-            String query = "SELECT * FROM property p WHERE p.availability_status = ?";
-
-            PreparedStatement ps;
+            // 2. Build the query dynamically
+            StringBuilder sql = new StringBuilder("SELECT * FROM property WHERE availability_status = ?");
 
             if ("AGENT".equals(Session.role)) {
-                ps = conn.prepareStatement(query + " AND p.agent_id = ?");
-                ps.setString(1, status);
-                ps.setInt(2, Session.userId);
-
+                sql.append(" AND agent_id = ?");
             } else if ("AGENCY".equals(Session.role)) {
-                ps = conn.prepareStatement(query + """
-                AND p.agent_id IN (
-                    SELECT agent_id FROM agent WHERE agency_id = ?
-                )
-            """);
-                ps.setString(1, status);
-                ps.setInt(2, Session.agencyId);
-
-            } else {
-                ps = conn.prepareStatement(query);
-                ps.setString(1, status);
+                sql.append(" AND agent_id IN (SELECT agent_id FROM agent WHERE agency_id = ?)");
             }
 
-            ResultSet rs = ps.executeQuery();
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
 
-            while (rs.next()) {
-                System.out.println(rs.getInt("property_id") + " | " + rs.getString("availability_status"));
+            // 3. Set boolean status and role-based ID
+            ps.setBoolean(1, isAvailable);
+
+            if ("AGENT".equals(Session.role)) {
+                ps.setInt(2, Session.userId);
+            } else if ("AGENCY".equals(Session.role)) {
+                ps.setInt(2, Session.agencyId);
+            }
+
+            // 4. Execute and print all details
+            try (ResultSet rs = ps.executeQuery()) {
+                boolean found = false;
+
+                while (rs.next()) {
+                    found = true;
+                    System.out.println("------------------------------------");
+                    System.out.println("Property ID:   " + rs.getInt("property_id"));
+                    System.out.println("Address:       " + rs.getString("address"));
+                    System.out.println("City:          " + rs.getString("city"));
+                    System.out.println("Status:        " + (rs.getBoolean("availability_status") ? "Available" : "Not Available"));
+                    System.out.println("Size (sqft):   " + rs.getInt("size_sqft"));
+                }
+
+                if (!found) {
+                    System.out.println("⚠️ No properties found for that status.");
+                }
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println("❌ Database Error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -1017,81 +1102,113 @@ public class PropertyService {
     }
 
     public static void sortPropertiesByPrice() {
-        try {
-            Connection conn = DBConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection()) {
 
-            String query = """
-            SELECT p.property_id, pt.price
-            FROM property p
-            JOIN property_type pt ON p.property_id = pt.property_id
-        """;
+            // 1. Join tables to include price from property_type
+            StringBuilder sql = new StringBuilder("SELECT p.*, pt.price, pt.listing_type ");
+            sql.append("FROM property p ");
+            sql.append("JOIN property_type pt ON p.property_id = pt.property_id");
 
-            PreparedStatement ps;
-
+            // 2. Add role-based filters
             if ("AGENT".equals(Session.role)) {
-                ps = conn.prepareStatement(query + " WHERE p.agent_id = ? ORDER BY pt.price DESC");
-                ps.setInt(1, Session.userId);
-
+                sql.append(" WHERE p.agent_id = ?");
             } else if ("AGENCY".equals(Session.role)) {
-                ps = conn.prepareStatement(query + """
-                WHERE p.agent_id IN (
-                    SELECT agent_id FROM agent WHERE agency_id = ?
-                )
-                ORDER BY pt.price DESC
-            """);
-                ps.setInt(1, Session.agencyId);
-
-            } else {
-                ps = conn.prepareStatement(query + " ORDER BY pt.price DESC");
+                sql.append(" WHERE p.agent_id IN (SELECT agent_id FROM agent WHERE agency_id = ?)");
             }
 
-            ResultSet rs = ps.executeQuery();
+            // 3. Sort by price
+            sql.append(" ORDER BY pt.price DESC");
 
-            while (rs.next()) {
-                System.out.println(rs.getInt("property_id") + " | ₹" + rs.getInt("price"));
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
+
+            // 4. Set parameters
+            if ("AGENT".equals(Session.role)) {
+                ps.setInt(1, Session.userId);
+            } else if ("AGENCY".equals(Session.role)) {
+                ps.setInt(1, Session.agencyId);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                boolean found = false;
+
+                while (rs.next()) {
+                    found = true;
+                    System.out.println("------------------------------------");
+                    System.out.println("Property ID:   " + rs.getInt("property_id"));
+                    System.out.println("Price:         ₹" + rs.getInt("price"));
+                    System.out.println("Type:          " + rs.getString("listing_type"));
+                    System.out.println("Address:       " + rs.getString("address"));
+                    System.out.println("City:          " + rs.getString("city"));
+                    System.out.println("Size (sqft):   " + rs.getInt("size_sqft"));
+                    System.out.println("Available:     " + (rs.getBoolean("availability_status") ? "Yes" : "No"));
+                    System.out.println("Agent ID:      " + rs.getInt("agent_id"));
+                }
+
+                if (!found) {
+                    System.out.println("⚠️ No properties found.");
+                }
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println("❌ Database Error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     public static void sortPropertiesBySize() {
-        try {
-            Connection conn = DBConnection.getConnection();
+        try (Connection conn = DBConnection.getConnection()) {
 
-            String query = "SELECT property_id, size_sqft FROM property p";
+            // 1. Select all columns (*) to get full property details
+            StringBuilder sql = new StringBuilder("SELECT * FROM property");
 
-            PreparedStatement ps;
-
+            // 2. Add filters based on role
             if ("AGENT".equals(Session.role)) {
-                ps = conn.prepareStatement(query + " WHERE p.agent_id = ? ORDER BY size_sqft DESC");
-                ps.setInt(1, Session.userId);
-
+                sql.append(" WHERE agent_id = ?");
             } else if ("AGENCY".equals(Session.role)) {
-                ps = conn.prepareStatement(query + """
-                WHERE p.agent_id IN (
-                    SELECT agent_id FROM agent WHERE agency_id = ?
-                )
-                ORDER BY size_sqft DESC
-            """);
-                ps.setInt(1, Session.agencyId);
-
-            } else {
-                ps = conn.prepareStatement(query + " ORDER BY size_sqft DESC");
+                sql.append(" WHERE agent_id IN (SELECT agent_id FROM agent WHERE agency_id = ?)");
             }
 
-            ResultSet rs = ps.executeQuery();
+            // 3. Append the sorting order
+            sql.append(" ORDER BY size_sqft DESC");
 
-            while (rs.next()) {
-                System.out.println(rs.getInt("property_id") + " | " + rs.getInt("size_sqft"));
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
+
+            // 4. Set parameters if a filter was applied
+            if ("AGENT".equals(Session.role)) {
+                ps.setInt(1, Session.userId);
+            } else if ("AGENCY".equals(Session.role)) {
+                ps.setInt(1, Session.agencyId);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                boolean found = false;
+
+                while (rs.next()) {
+                    found = true;
+                    System.out.println("------------------------------------");
+                    System.out.println("Property ID:   " + rs.getInt("property_id"));
+                    System.out.println("Address:       " + rs.getString("address"));
+                    System.out.println("City:          " + rs.getString("city"));
+                    System.out.println("Locality:      " + rs.getString("locality"));
+                    System.out.println("Size (sqft):   " + rs.getInt("size_sqft"));
+                    System.out.println("Bedrooms:      " + rs.getInt("bedrooms"));
+                    System.out.println("Year Built:    " + rs.getInt("year_built"));
+                    System.out.println("Available:     " + (rs.getBoolean("availability_status") ? "Yes" : "No"));
+                    System.out.println("Listing Date:  " + rs.getDate("listing_date"));
+                    System.out.println("Agent ID:      " + rs.getInt("agent_id"));
+                    System.out.println("Owner ID:      " + rs.getInt("owner_id"));
+                }
+
+                if (!found) {
+                    System.out.println("⚠️ No properties found.");
+                }
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println("❌ Database Error: " + e.getMessage());
+            e.printStackTrace();
         }
     }
-
     public static void checkPropertyExists() {
         try {
             Connection conn = DBConnection.getConnection();
@@ -1267,47 +1384,62 @@ public class PropertyService {
             System.out.println("❌ Error: " + e.getMessage());
         }
     }
-
     public static void propertiesByYear() {
-        try {
-            Connection conn = DBConnection.getConnection();
+        // Using try-with-resources to ensure connection closes
+        try (Connection conn = DBConnection.getConnection()) {
 
             int year = InputUtil.getPositiveInt("Enter Year");
 
-            String query = "SELECT * FROM property p WHERE p.year_built = ?";
-
-            PreparedStatement ps;
+            // 1. Build the query string
+            StringBuilder sql = new StringBuilder("SELECT * FROM property WHERE year_built = ?");
 
             if ("AGENT".equals(Session.role)) {
-                ps = conn.prepareStatement(query + " AND p.agent_id = ?");
-                ps.setInt(1, year);
-                ps.setInt(2, Session.userId);
-
+                sql.append(" AND agent_id = ?");
             } else if ("AGENCY".equals(Session.role)) {
-                ps = conn.prepareStatement(query + """
-                AND p.agent_id IN (
-                    SELECT agent_id FROM agent WHERE agency_id = ?
-                )
-            """);
-                ps.setInt(1, year);
-                ps.setInt(2, Session.agencyId);
-
-            } else {
-                ps = conn.prepareStatement(query);
-                ps.setInt(1, year);
+                sql.append(" AND agent_id IN (SELECT agent_id FROM agent WHERE agency_id = ?)");
             }
 
-            ResultSet rs = ps.executeQuery();
+            // 2. Prepare the statement
+            PreparedStatement ps = conn.prepareStatement(sql.toString());
+            ps.setInt(1, year);
 
-            while (rs.next()) {
-                System.out.println(rs.getInt("property_id") + " | " + rs.getInt("year_built"));
+            // 3. Set the second parameter only if roles apply
+            if ("AGENT".equals(Session.role)) {
+                ps.setInt(2, Session.userId);
+            } else if ("AGENCY".equals(Session.role)) {
+                ps.setInt(2, Session.agencyId);
+            }
+
+            // 4. Execute query and iterate ONCE
+            try (ResultSet rs = ps.executeQuery()) {
+                boolean found = false;
+
+                while (rs.next()) {
+                    found = true;
+                    System.out.println("------------------------------------");
+                    System.out.println("Property ID:   " + rs.getInt("property_id"));
+                    System.out.println("Address:       " + rs.getString("address"));
+                    System.out.println("City:          " + rs.getString("city"));
+                    System.out.println("Locality:      " + rs.getString("locality"));
+                    System.out.println("Size (sqft):   " + rs.getInt("size_sqft"));
+                    System.out.println("Bedrooms:      " + rs.getInt("bedrooms"));
+                    System.out.println("Year Built:    " + rs.getInt("year_built"));
+                    System.out.println("Available:     " + (rs.getBoolean("availability_status") ? "Yes" : "No"));
+                    System.out.println("Listing Date:  " + rs.getDate("listing_date"));
+                    System.out.println("Agent ID:      " + rs.getInt("agent_id"));
+                    System.out.println("Owner ID:      " + rs.getInt("owner_id"));
+                }
+
+                if (!found) {
+                    System.out.println("⚠️ No properties found for the year " + year);
+                }
             }
 
         } catch (Exception e) {
-            System.out.println("❌ Error: " + e.getMessage());
+            System.out.println("❌ Database Error: " + e.getMessage());
+            e.printStackTrace(); // This will help you see the exact line of the error
         }
     }
-
     public static void averagePropertyPrice() {
         try {
             Connection conn = DBConnection.getConnection();

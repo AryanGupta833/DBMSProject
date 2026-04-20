@@ -1,35 +1,24 @@
 import java.sql.*;
-import java.security.MessageDigest;
 
 /**
  * AuthService — handles login for ADMIN / AGENCY / AGENT.
- *
- * Passwords are stored as SHA-256 hex hashes in the DB.
- * The helper hashPassword() is also used by AgentService /
- * OfficeService when creating accounts.
- *
- * ADMIN credentials are still hardcoded (no DB row needed)
- * but the password is compared after hashing so you can
- * change ADMIN_PASS_HASH to any SHA-256 hash you like.
+ * Passwords are stored as plain text in the DB.
+ * ADMIN credentials remain hardcoded.
  */
 public class AuthService {
 
-    // SHA-256 of "admin123"  — change this constant to lock the admin account
-    private static final String ADMIN_PASS_HASH =
-            "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9";
+    private static final String ADMIN_PASSWORD = "admin123";
 
     // ----------------------------------------------------------------
     // Public API
     // ----------------------------------------------------------------
 
     public static String login(String username, String password) {
-        String hash = hashPassword(password);
-
         try {
             Connection conn = DBConnection.getConnection();
 
-            // ── 1. ADMIN (hardcoded, hash-compared) ─────────────────
-            if ("admin".equals(username) && ADMIN_PASS_HASH.equals(hash)) {
+            // ── 1. ADMIN (hardcoded) ─────────────────────────────────
+            if ("admin".equals(username) && ADMIN_PASSWORD.equals(password)) {
                 Session.userId   = 1;
                 Session.role     = "ADMIN";
                 Session.agencyId = 0;
@@ -44,7 +33,7 @@ public class AuthService {
                             "WHERE agency_name = ? AND password_hash = ?"
             );
             ps2.setString(1, username);
-            ps2.setString(2, hash);
+            ps2.setString(2, password);
             ResultSet rs2 = ps2.executeQuery();
 
             if (rs2.next()) {
@@ -64,7 +53,7 @@ public class AuthService {
                             "WHERE name = ? AND password_hash = ?"
             );
             ps3.setString(1, username);
-            ps3.setString(2, hash);
+            ps3.setString(2, password);
             ResultSet rs3 = ps3.executeQuery();
 
             if (rs3.next()) {
@@ -89,30 +78,16 @@ public class AuthService {
     // Password utilities (public so services can call them)
     // ----------------------------------------------------------------
 
-    /** Returns the SHA-256 hex digest of the given plain-text password. */
-    public static String hashPassword(String plain) {
-        if (plain == null || plain.isEmpty()) return "";
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] bytes = md.digest(plain.getBytes("UTF-8"));
-            StringBuilder sb = new StringBuilder();
-            for (byte b : bytes) sb.append(String.format("%02x", b));
-            return sb.toString();
-        } catch (Exception e) {
-            throw new RuntimeException("SHA-256 not available", e);
-        }
-    }
-
     /**
-     * Interactive prompt: ask for a new password, confirm it,
-     * and return the hash. Used when adding agents / agencies.
+     * Interactive prompt: ask for a new password, confirm it, and return it.
+     * Used when adding agents / agencies.
      */
     public static String promptAndHashNewPassword() {
         while (true) {
             String p1 = InputUtil.getMaskedInput("   Enter password       : ");
             String p2 = InputUtil.getMaskedInput("   Confirm password     : ");
             if (p1.equals(p2)) {
-                return hashPassword(p1);
+                return p1;
             }
             System.out.println(Color.RED + "   ❌ Passwords do not match. Try again." + Color.RESET);
         }

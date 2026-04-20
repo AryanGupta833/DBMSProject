@@ -16,12 +16,21 @@ public class AgentMenu {
                     "Filter by Bedrooms",
                     "Sort Properties by Price",
                     "Sort Properties by Size",
+                    "View Top Agent",
+
+
 
                     // 🔹 Client Actions
                     "Add Client",
-                    "View Clients",
+                    "View  Clients",
 
-                    // 🔹 Rent Management
+                    // 🔹 Sales Transactions
+                    "Record Sales",
+                    "View My Deals",
+                    "Deals by Date Range (My Deals)",
+                    "Total Deal Value (My Deals)",
+
+                    // 🔹 Rent Management (NEW 🔥)
                     "Record Rent",
                     "View Rent",
                     "Find Rent by ID",
@@ -30,7 +39,7 @@ public class AgentMenu {
                     "Filter Rent by Client",
                     "Rent by Date Range",
 
-                    // 🔹 Rent Analytics
+                    // 🔹 Rent Analytics (SELF)
                     "Total Rent Amount",
                     "Count Rents",
                     "Sort Rent by Amount",
@@ -38,7 +47,7 @@ public class AgentMenu {
                     "Rent Summary",
                     "Top Tenant",
 
-                    // 🔹 Agent Analytics
+                    // 🔹 Agent Analytics (SELF ONLY)
                     "My Performance",
                     "My Summary",
                     "My Revenue",
@@ -50,36 +59,9 @@ public class AgentMenu {
                     "My Workload",
                     "My Most Expensive Property",
                     "My Average Property Price",
-                    "Find Property by ID",
+                    "Find Property by Id",
                     "Make Property Available",
-                    "Assign Role",
-
-                    // 🔹 Sales (Agent)
-                    "Record Sale",
-                    "View My Sales",
-                    "Find Sale by ID",
-                    "Delete Sale",
-
-                    // 🔹 Sales Filters
-                    "Sales by Date Range",
-                    "Sales by Property",
-                    "High Value Sales",
-
-                    // 🔹 Sales Analytics
-                    "Total Sales Amount",
-                    "Total Sales Count",
-                    "Sales Summary",
-                    "Top Buyer",
-                    "Repeat Buyers",
-
-                    // 🔹 Sales Sorting
-                    "Sort Sales by Amount",
-                    "Sort Sales by Date",
-
-                    // 🔹 Sales Insights
-                    "Sales by City",
-                    "Monthly Sales Report",
-                    "Unsold Properties",
+                    "Assign Role To Client",
 
                     // 🔹 Exit
                     "Back"
@@ -98,73 +80,55 @@ public class AgentMenu {
                 case 6 -> PropertyService.filterByBedrooms();
                 case 7 -> PropertyService.sortPropertiesByPrice();
                 case 8 -> PropertyService.sortPropertiesBySize();
+                case 9 -> AgentService.topAgent();
 
                 // 🔹 Client
-                case 9 -> ClientService.addClient();
-                case 10 -> ClientService.viewClient();
-
-                // 🔹 Rent Management
-                case 11 -> RentService.recordRent();
-                case 12 -> RentService.viewRent();
-                case 13 -> RentService.findRentById();
-                case 14 -> RentService.filterRentByDate();
-                case 15 -> RentService.filterRentByProperty();
-                case 16 -> RentService.filterRentByClient();
-                case 17 -> RentService.rentByDateRange();
-
-                // 🔹 Rent Analytics
-                case 18 -> RentService.totalRentAmount();
-                case 19 -> RentService.countRents();
-                case 20 -> RentService.sortRentByAmount();
-                case 21 -> RentService.sortRentByDate();
-                case 22 -> RentService.rentSummary();
-                case 23 -> RentService.topTenant();
-
-                // 🔹 Agent Analytics
-                case 24 -> AgentService.agentPerformance();
-                case 25 -> AgentService.agentSummary();
-                case 26 -> AgentService.agentRevenue();
-                case 27 -> AgentService.agentActiveListings();
-                case 28 -> AgentService.agentDealBreakdown();
-                case 29 -> AgentService.agentPortfolioValue();
-                case 30 -> AgentService.agentSuccessRate();
-                case 31 -> AgentService.agentDealsHistory();
-                case 32 -> AgentService.agentWorkload();
-                case 33 -> PropertyService.mostExpensiveProperty();
-                case 34 -> PropertyService.averagePropertyPrice();
-                case 35 -> PropertyService.findPropertyById();
-                case 36 -> AgentService.makePropertyAvailable();
-                case 37 -> AgentService.assignRole();
+                case 10 -> ClientService.addClient();
+                case 11 -> ClientService.viewClient();
 
                 // 🔹 Sales
-                case 38 -> SalesService.RecordSale();
-                case 39 -> SalesService.viewSales();
-                case 40 -> SalesService.findSaleById();
-                case 41 -> SalesService.deleteSale();
+                case 12 -> PropertyService.sellProperty();
+                case 13 -> DealService.dealsByAgent();
+                case 14 -> DealService.dealsByDateRange();
+                case 15 -> DealService.totalDealValue();
 
-                // 🔹 Sales Filters
-                case 42 -> SalesService.salesByDateRange();
-                case 43 -> SalesService.filterSalesByProperty();
-                case 44 -> SalesService.highValueSales();
+                // 🔥 Rent Management
+                case 16 -> RentService.recordRent();
+                case 17 -> RentService.viewRent();
+                case 18 -> RentService.findRentById();
+                case 19 -> RentService.filterRentByDate();
+                case 20 -> RentService.filterRentByProperty();
+                case 21 -> RentService.filterRentByClient();
+                case 22 -> RentService.rentByDateRange();
 
-                // 🔹 Sales Analytics
-                case 45 -> SalesService.totalSalesAmount();
-                case 46 -> SalesService.countSales();
-                case 47 -> SalesService.salesSummary();
-                case 48 -> SalesService.topBuyer();
-                case 49 -> SalesService.repeatBuyers();
+                // 🔥 Rent Analytics
+                case 23 -> RentService.totalRentAmount();
+                case 24 -> RentService.countRents();
+                case 25 -> RentService.sortRentByAmount();
+                case 26 -> RentService.sortRentByDate();
+                case 27 -> RentService.rentSummary();
+                case 28 -> RentService.topTenant();
 
-                // 🔹 Sales Sorting
-                case 50 -> SalesService.sortSalesByAmount();
-                case 51 -> SalesService.sortSalesByDate();
-
-                // 🔹 Sales Insights
-                case 52 -> SalesService.salesByCity();
-                case 53 -> SalesService.monthlySalesReport();
-                case 54 -> SalesService.unsoldProperties();
+                // 🔹 Agent Analytics
+                case 29 -> AgentService.agentPerformance();
+                case 30 -> AgentService.agentSummary();
+                case 31 -> AgentService.agentRevenue();
+                case 32 -> AgentService.agentActiveListings();
+                case 33 -> AgentService.agentDealBreakdown();
+                case 34 -> AgentService.agentPortfolioValue();
+                case 35 -> AgentService.agentSuccessRate();
+                case 36 -> AgentService.agentDealsHistory();
+                case 37 -> AgentService.agentWorkload();
+                case 38 -> PropertyService.mostExpensiveProperty();
+                case 39 -> PropertyService.averagePropertyPrice();
+                case 40 -> PropertyService.findPropertyById();
+                case 41 -> AgentService.makePropertyAvailable();
+                case 42 -> AgentService.assignRole();
 
                 // 🔹 Exit
-                case 55 -> { return; }
+                case 43 -> {
+                    return;
+                }
 
                 default -> System.out.println("Invalid choice.");
             }
