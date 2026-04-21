@@ -17,22 +17,23 @@ public class ContributionUtil {
             choice = sc.nextInt();
 
             switch (choice) {
-                case 1:
+                case 1->
                     displayContributionByRoll(2401012);
-                    break;
-                case 2:
+
+                case 2->
                     displayContributionByRoll(2401048);
-                    break;
-                case 3:
+                case 3->
                     displayContributionByRoll(2401058);
-                    break;
-                case 4:
+
+                case 4->
                     displayContributionByRoll(2401079);
-                    break;
-                case 5:
+
+                case 5 -> {
                     System.out.println("Exiting...");
-                    break;
-                default:
+                    return ;
+                }
+
+                default->
                     System.out.println("Invalid choice! Try again.");
             }
 
