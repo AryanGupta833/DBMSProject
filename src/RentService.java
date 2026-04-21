@@ -183,16 +183,59 @@ public class RentService {
             int rentId     = InputUtil.getPositiveInt("Enter Rent ID");
             int rentAmount = InputUtil.getPositiveInt("Enter Rent Amount");
             Date startDate = Date.valueOf(InputUtil.getStringInput("Enter Start Date (YYYY-MM-DD)"));
-            Date endDate   = Date.valueOf(InputUtil.getStringInput("Enter End Date   (YYYY-MM-DD)"));
+            Date endDate   = Date.valueOf(InputUtil.getStringInput("Enter End Date (YYYY-MM-DD)"));
 
             // Show tenants first
             showTenantsForSelection();
             int tenantId = InputUtil.getPositiveInt("Enter Tenant ID");
 
-            // Show available properties for rent
-            showPropertiesForRent();
-            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+            // 🔥 CORRECT PROPERTY QUERY (JOIN + FILTER RENT)
+            // 🔥 Show ONLY filtered + rent properties
+            String propQuery =
+                    "SELECT p.property_id, p.address, p.city, p.locality, pt.price " +
+                            "FROM property p " +
+                            "JOIN property_type pt ON p.property_id = pt.property_id " +
+                            "WHERE p.availability_status = true AND pt.listing_type = 'rent'";
 
+// Role-based filtering
+            if ("AGENT".equals(Session.role)) {
+                propQuery += " AND p.agent_id = ?";
+            } else if ("AGENCY".equals(Session.role)) {
+                propQuery += " AND p.agent_id IN (SELECT agent_id FROM agent WHERE agency_id = ?)";
+            }
+
+            PreparedStatement propStmt = conn.prepareStatement(propQuery);
+
+            if ("AGENT".equals(Session.role)) {
+                propStmt.setInt(1, Session.userId);
+            } else if ("AGENCY".equals(Session.role)) {
+                propStmt.setInt(1, Session.agencyId);
+            }
+
+            ResultSet propRs = propStmt.executeQuery();
+
+            System.out.println("Available Properties:");
+            boolean found = false;
+
+            while (propRs.next()) {
+                found = true;
+                System.out.println(
+                        "Property ID: " + propRs.getInt("property_id") +
+                                ", Address: " + propRs.getString("address") +
+                                ", City: " + propRs.getString("city") +
+                                ", Locality: " + propRs.getString("locality") +
+                                ", Rent: " + propRs.getInt("price")
+                );
+            }
+
+            if (!found) {
+                System.out.println("❌ No available rental properties.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+            // Agent selection
             int agentId;
             if ("AGENT".equals(Session.role)) {
                 agentId = Session.userId;
@@ -201,20 +244,43 @@ public class RentService {
                 agentId = InputUtil.getPositiveInt("Enter Agent ID");
             }
 
-            // Access check
-            String checkQuery = "SELECT availability_status FROM property WHERE property_id=?";
-            if ("AGENT".equals(Session.role))        checkQuery += " AND agent_id=?";
-            else if ("AGENCY".equals(Session.role))  checkQuery += " AND agent_id IN (SELECT agent_id FROM agent WHERE agency_id=?)";
+            // 🔒 SECURITY CHECK (KEEP THIS)
+            String checkQuery =
+                    "SELECT p.availability_status " +
+                            "FROM property p " +
+                            "JOIN property_type pt ON p.property_id = pt.property_id " +
+                            "WHERE p.property_id=? AND pt.listing_type='rent'";
+
+            if ("AGENT".equals(Session.role)) {
+                checkQuery += " AND p.agent_id=?";
+            } else if ("AGENCY".equals(Session.role)) {
+                checkQuery += " AND p.agent_id IN (SELECT agent_id FROM agent WHERE agency_id=?)";
+            }
 
             PreparedStatement check = conn.prepareStatement(checkQuery);
             check.setInt(1, propertyId);
-            if ("AGENT".equals(Session.role))        check.setInt(2, Session.userId);
-            else if ("AGENCY".equals(Session.role))  check.setInt(2, Session.agencyId);
+
+            if ("AGENT".equals(Session.role)) {
+                check.setInt(2, Session.userId);
+            } else if ("AGENCY".equals(Session.role)) {
+                check.setInt(2, Session.agencyId);
+            }
 
             ResultSet rs = check.executeQuery();
-            if (!rs.next()) { System.out.println("❌ Property not found or access denied."); InputUtil.pressEnterToContinue(); return; }
-            if (!rs.getBoolean("availability_status")) { System.out.println("❌ Property is not available for rent."); InputUtil.pressEnterToContinue(); return; }
 
+            if (!rs.next()) {
+                System.out.println("❌ Property not found / not for rent / access denied.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            if (!rs.getBoolean("availability_status")) {
+                System.out.println("❌ Property is not available.");
+                InputUtil.pressEnterToContinue();
+                return;
+            }
+
+            // ✅ INSERT RENT
             PreparedStatement ps = conn.prepareStatement("INSERT INTO rent VALUES (?,?,?,?,?,?,?)");
             ps.setInt(1, rentId);
             ps.setInt(2, rentAmount);
@@ -223,6 +289,7 @@ public class RentService {
             ps.setInt(5, tenantId);
             ps.setInt(6, propertyId);
             ps.setInt(7, agentId);
+
             ps.executeUpdate();
 
             System.out.println(Color.GREEN + "✅ Rent recorded successfully!" + Color.RESET);
@@ -230,6 +297,7 @@ public class RentService {
         } catch (Exception e) {
             System.out.println(Color.RED + "❌ Error: " + e.getMessage() + Color.RESET);
         }
+
         InputUtil.pressEnterToContinue();
     }
 
