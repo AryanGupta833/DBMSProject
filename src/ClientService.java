@@ -31,16 +31,6 @@ public class ClientService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int id = InputUtil.getPositiveInt("Enter Client ID");
-
-            // --- CHECK 1: Ensure Client ID doesn't already exist ---
-            PreparedStatement checkPs = conn.prepareStatement("SELECT 1 FROM client WHERE client_id = ?");
-            checkPs.setInt(1, id);
-            if (checkPs.executeQuery().next()) {
-                System.out.println("❌ A client with ID " + id + " already exists!");
-                InputUtil.pressEnterToContinue();
-                return; // Stop execution here to save the user from filling out the rest
-            }
 
             String name = InputUtil.getStringInput("Enter Name");
             String phone = InputUtil.getPhone("Enter Phone (10 digits)");
@@ -55,14 +45,13 @@ public class ClientService {
                 return;
             }
 
-            String query = "INSERT INTO client VALUES (?, ?, ?, ?, ?)";
+            String query = "INSERT INTO client(client_name, client_phone, client_email, client_address) VALUES (?, ?, ?, ?)";
 
             PreparedStatement ps = conn.prepareStatement(query);
-            ps.setInt(1, id);
-            ps.setString(2, name);
-            ps.setString(3, phone);
-            ps.setString(4, email);
-            ps.setString(5, address);
+            ps.setString(1, name);
+            ps.setString(2, phone);
+            ps.setString(3, email);
+            ps.setString(4, address);
 
             ps.executeUpdate();
             System.out.println("✅ Client added successfully");

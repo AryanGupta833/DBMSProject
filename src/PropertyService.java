@@ -136,12 +136,10 @@ public class PropertyService {
     }
 
     // --- MAIN METHODS ---
-
     public static void addProperty() {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int id = InputUtil.getPositiveInt("Enter Property ID");
             String address = InputUtil.getStringInput("Enter Address");
             String city = InputUtil.getStringInput("Enter City");
             String locality = InputUtil.getStringInput("Enter Locality");
@@ -149,35 +147,76 @@ public class PropertyService {
             int bedrooms = InputUtil.getPositiveInt("Enter Bedrooms");
             int year = InputUtil.getPositiveInt("Enter Year Built");
 
+            if (year > java.time.Year.now().getValue()) {
+                System.out.println("❌ Invalid year built");
+                return;
+            }
+
             showAgentsForSelection();
             int agentId = InputUtil.getPositiveInt("Enter Agent ID");
+
+            // Check if agent exists
+            PreparedStatement checkAgent = conn.prepareStatement(
+                    "SELECT agent_id FROM agent WHERE agent_id = ?");
+            checkAgent.setInt(1, agentId);
+            ResultSet rsAgent = checkAgent.executeQuery();
+            if (!rsAgent.next()) {
+                System.out.println("❌ Agent not found");
+                return;
+            }
 
             showClientsForSelection();
             int ownerId = InputUtil.getPositiveInt("Enter Owner ID (Client ID)");
 
-            PreparedStatement ps = conn.prepareStatement(
-                    "INSERT INTO property VALUES (?, ?, ?, ?, ?, ?, ?, true, CURDATE(), ?, ?)");
+            // Check if client exists
+            PreparedStatement checkClient = conn.prepareStatement(
+                    "SELECT client_id FROM client WHERE client_id = ?");
+            checkClient.setInt(1, ownerId);
+            ResultSet rsClient = checkClient.executeQuery();
+            if (!rsClient.next()) {
+                System.out.println("❌ Client not found");
+                return;
+            }
 
-            ps.setInt(1, id);
-            ps.setString(2, address);
-            ps.setString(3, city);
-            ps.setString(4, locality);
-            ps.setInt(5, size);
-            ps.setInt(6, bedrooms);
-            ps.setInt(7, year);
-            ps.setInt(8, agentId);
-            ps.setInt(9, ownerId);
+            // FIX 1: specify columns (exclude property_id)
+            PreparedStatement ps = conn.prepareStatement(
+                    "INSERT INTO property(address, city, locality, size_sqft, bedrooms, year_built, availability_status, listing_date, agent_id, owner_id) VALUES (?, ?, ?, ?, ?, ?, true, CURDATE(), ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS
+            );
+
+            ps.setString(1, address);
+            ps.setString(2, city);
+            ps.setString(3, locality);
+            ps.setInt(4, size);
+            ps.setInt(5, bedrooms);
+            ps.setInt(6, year);
+            ps.setInt(7, agentId);
+            ps.setInt(8, ownerId);
 
             ps.executeUpdate();
 
+            // FIX 2: get generated property_id
+            ResultSet generatedKeys = ps.getGeneratedKeys();
+            int propertyId = -1;
+            if (generatedKeys.next()) {
+                propertyId = generatedKeys.getInt(1);
+            } else {
+                throw new Exception("Failed to get generated property ID");
+            }
+
             String type = InputUtil.getStringInput("Enter Listing Type (Sale/Rent)");
+            if (!type.equalsIgnoreCase("Sale") && !type.equalsIgnoreCase("Rent")) {
+                System.out.println("❌ Invalid listing type");
+                return;
+            }
+
             int price = InputUtil.getPositiveInt("Enter Price");
 
             PreparedStatement ps2 = conn.prepareStatement(
                     "INSERT INTO property_type VALUES (?, ?, ?)");
             ps2.setString(1, type);
             ps2.setInt(2, price);
-            ps2.setInt(3, id);
+            ps2.setInt(3, propertyId);   // FIX 3: use generated id
 
             ps2.executeUpdate();
 
@@ -554,31 +593,53 @@ public class PropertyService {
                 check.setInt(2, Session.agencyId);
             }
 
-            if (!check.executeQuery().next()) {
+            ResultSet rs = check.executeQuery();
+            if (!rs.next()) {
                 System.out.println("❌ Access denied");
                 return;
             }
 
+            // 🔥 check if property is available
+            PreparedStatement checkAvail = conn.prepareStatement(
+                    "SELECT availability_status, owner_id FROM property WHERE property_id=?");
+            checkAvail.setInt(1, propertyId);
+            ResultSet rs2 = checkAvail.executeQuery();
+
+            if (rs2.next() && !rs2.getBoolean("availability_status")) {
+                System.out.println("❌ Property already sold/unavailable");
+                return;
+            }
+
+            int actualSellerId = rs2.getInt("owner_id");
+
             showClientsForSelection();
             int buyerId = InputUtil.getPositiveInt("Enter Buyer ID");
-            int sellerId = InputUtil.getPositiveInt("Enter Seller ID");
 
-            int agentId = Session.userId; // 🔥 auto assign
+            int sellerId = actualSellerId; // 🔥 auto correct seller
+            int agentId = Session.userId;  // 🔥 auto assign
 
-            int salesId = InputUtil.getPositiveInt("Enter Sales ID");
             int price = InputUtil.getPositiveInt("Enter Sale Price");
 
+            // 🔥 FIX: remove sales_id (AUTO_INCREMENT)
             PreparedStatement ps1 = conn.prepareStatement(
-                    "INSERT INTO sales VALUES (?, ?, CURDATE(), ?, ?, ?, ?)"
+                    "INSERT INTO sales(sales_price, sales_date, buyer_id, seller_id, agent_id, property_id) VALUES (?, CURDATE(), ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS
             );
 
-            ps1.setInt(1, salesId);
-            ps1.setInt(2, price);
-            ps1.setInt(3, buyerId);
-            ps1.setInt(4, sellerId);
-            ps1.setInt(5, agentId);
-            ps1.setInt(6, propertyId);
+            ps1.setInt(1, price);
+            ps1.setInt(2, buyerId);
+            ps1.setInt(3, sellerId);
+            ps1.setInt(4, agentId);
+            ps1.setInt(5, propertyId);
+
             ps1.executeUpdate();
+
+            // (optional) get generated sales_id
+            ResultSet keys = ps1.getGeneratedKeys();
+            if (keys.next()) {
+                int salesId = keys.getInt(1);
+                System.out.println("ℹ️ Generated Sales ID: " + salesId);
+            }
 
             PreparedStatement ps2 = conn.prepareStatement(
                     "UPDATE property SET availability_status=0, owner_id=? WHERE property_id=?"
@@ -617,8 +678,20 @@ public class PropertyService {
                 check.setInt(2, Session.agencyId);
             }
 
-            if (!check.executeQuery().next()) {
+            ResultSet rs = check.executeQuery();
+            if (!rs.next()) {
                 System.out.println("❌ Access denied");
+                return;
+            }
+
+            // 🔥 availability check
+            PreparedStatement checkAvail = conn.prepareStatement(
+                    "SELECT availability_status FROM property WHERE property_id=?");
+            checkAvail.setInt(1, propertyId);
+            ResultSet rs2 = checkAvail.executeQuery();
+
+            if (rs2.next() && !rs2.getBoolean("availability_status")) {
+                System.out.println("❌ Property not available");
                 return;
             }
 
@@ -627,23 +700,40 @@ public class PropertyService {
 
             int agentId = Session.userId;
 
-            int rentId = InputUtil.getPositiveInt("Enter Rent ID");
             int amount = InputUtil.getPositiveInt("Enter Rent Amount");
-            String start = InputUtil.getStringInput("Start Date");
-            String end = InputUtil.getStringInput("End Date");
+            String start = InputUtil.getStringInput("Start Date (YYYY-MM-DD)");
+            String end = InputUtil.getStringInput("End Date (YYYY-MM-DD)");
 
+            // 🔥 basic date validation
+            java.sql.Date startDate = java.sql.Date.valueOf(start);
+            java.sql.Date endDate = java.sql.Date.valueOf(end);
+
+            if (endDate.before(startDate)) {
+                System.out.println("❌ End date cannot be before start date");
+                return;
+            }
+
+            // 🔥 FIX: remove rent_id (AUTO_INCREMENT)
             PreparedStatement ps1 = conn.prepareStatement(
-                    "INSERT INTO rent VALUES (?, ?, ?, ?, ?, ?, ?)"
+                    "INSERT INTO rent(rent_amount, rent_start_date, rent_end_date, tenant_id, property_id, agent_id) VALUES (?, ?, ?, ?, ?, ?)",
+                    Statement.RETURN_GENERATED_KEYS
             );
 
-            ps1.setInt(1, rentId);
-            ps1.setInt(2, amount);
-            ps1.setString(3, start);
-            ps1.setString(4, end);
-            ps1.setInt(5, tenantId);
-            ps1.setInt(6, propertyId);
-            ps1.setInt(7, agentId);
+            ps1.setInt(1, amount);
+            ps1.setDate(2, startDate);
+            ps1.setDate(3, endDate);
+            ps1.setInt(4, tenantId);
+            ps1.setInt(5, propertyId);
+            ps1.setInt(6, agentId);
+
             ps1.executeUpdate();
+
+            // optional: get generated rent_id
+            ResultSet keys = ps1.getGeneratedKeys();
+            if (keys.next()) {
+                int rentId = keys.getInt(1);
+                System.out.println("ℹ️ Generated Rent ID: " + rentId);
+            }
 
             PreparedStatement ps2 = conn.prepareStatement(
                     "UPDATE property SET availability_status=0 WHERE property_id=?"
@@ -664,26 +754,79 @@ public class PropertyService {
             showPropertiesForSelection();
 
             int propertyId = InputUtil.getPositiveInt("Enter Property ID");
+
+            // 🔥 check property exists
+            PreparedStatement checkProp = conn.prepareStatement(
+                    "SELECT agent_id FROM property WHERE property_id=?");
+            checkProp.setInt(1, propertyId);
+            ResultSet rsProp = checkProp.executeQuery();
+
+            if (!rsProp.next()) {
+                System.out.println("❌ Property not found");
+                return;
+            }
+
+            // 🔥 access control (same logic as others)
+            String checkAccessQuery = "SELECT 1 FROM property WHERE property_id=?";
+            if ("AGENT".equals(Session.role)) {
+                checkAccessQuery += " AND agent_id=?";
+            } else if ("AGENCY".equals(Session.role)) {
+                checkAccessQuery += " AND agent_id IN (SELECT agent_id FROM agent WHERE agency_id=?)";
+            }
+
+            PreparedStatement checkAccess = conn.prepareStatement(checkAccessQuery);
+            checkAccess.setInt(1, propertyId);
+
+            if ("AGENT".equals(Session.role)) {
+                checkAccess.setInt(2, Session.userId);
+            } else if ("AGENCY".equals(Session.role)) {
+                checkAccess.setInt(2, Session.agencyId);
+            }
+
+            if (!checkAccess.executeQuery().next()) {
+                System.out.println("❌ Access denied");
+                return;
+            }
+
             String type = InputUtil.getStringInput("Enter Listing Type (Sale/Rent)");
+
+            // 🔥 validate listing type
+            if (!type.equalsIgnoreCase("Sale") && !type.equalsIgnoreCase("Rent")) {
+                System.out.println("❌ Invalid listing type (must be Sale or Rent)");
+                return;
+            }
+
             int price = InputUtil.getPositiveInt("Enter Price");
 
-            PreparedStatement ps1 = conn.prepareStatement("UPDATE property SET availability_status=1 WHERE property_id=?");
+            if (price <= 0) {
+                System.out.println("❌ Price must be positive");
+                return;
+            }
+
+            // normalize type (optional but cleaner DB)
+            type = type.substring(0,1).toUpperCase() + type.substring(1).toLowerCase();
+
+            PreparedStatement ps1 = conn.prepareStatement(
+                    "UPDATE property SET availability_status=1 WHERE property_id=?");
             ps1.setInt(1, propertyId);
             ps1.executeUpdate();
 
-            PreparedStatement check = conn.prepareStatement("SELECT * FROM property_type WHERE property_id=? AND listing_type=?");
+            PreparedStatement check = conn.prepareStatement(
+                    "SELECT 1 FROM property_type WHERE property_id=? AND listing_type=?");
             check.setInt(1, propertyId);
             check.setString(2, type);
             ResultSet rs = check.executeQuery();
 
             if (rs.next()) {
-                PreparedStatement ps2 = conn.prepareStatement("UPDATE property_type SET price=? WHERE property_id=? AND listing_type=?");
+                PreparedStatement ps2 = conn.prepareStatement(
+                        "UPDATE property_type SET price=? WHERE property_id=? AND listing_type=?");
                 ps2.setInt(1, price);
                 ps2.setInt(2, propertyId);
                 ps2.setString(3, type);
                 ps2.executeUpdate();
             } else {
-                PreparedStatement ps3 = conn.prepareStatement("INSERT INTO property_type VALUES (?, ?, ?)");
+                PreparedStatement ps3 = conn.prepareStatement(
+                        "INSERT INTO property_type VALUES (?, ?, ?)");
                 ps3.setString(1, type);
                 ps3.setInt(2, price);
                 ps3.setInt(3, propertyId);

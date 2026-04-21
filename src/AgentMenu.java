@@ -106,7 +106,7 @@ public class AgentMenu {
                 case 10 -> ClientService.viewClient();
 
                 // 🔹 Rent Management
-                case 11 -> RentService.recordRent();
+                case 11 -> PropertyService.rentProperty();
                 case 12 -> RentService.viewRent();
                 case 13 -> RentService.findRentById();
                 case 14 -> RentService.filterRentByDate();
@@ -139,7 +139,7 @@ public class AgentMenu {
                 case 37 -> AgentService.assignRole();
 
                 // 🔹 Sales
-                case 38 -> SalesService.RecordSale();
+                case 38 -> PropertyService.sellProperty();
                 case 39 -> SalesService.viewSales();
                 case 40 -> SalesService.findSaleById();
                 case 41 -> SalesService.deleteSale();

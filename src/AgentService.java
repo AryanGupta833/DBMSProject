@@ -77,16 +77,6 @@ public class AgentService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            int id = InputUtil.getPositiveInt("Enter Agent ID");
-
-            // Check if agent ID already exists
-            PreparedStatement checkAgent = conn.prepareStatement("SELECT 1 FROM agent WHERE agent_id = ?");
-            checkAgent.setInt(1, id);
-            if (checkAgent.executeQuery().next()) {
-                System.out.println("❌ Agent ID already exists!");
-                InputUtil.pressEnterToContinue();
-                return;
-            }
 
             String name = InputUtil.getStringInput("Enter Name");
             String phone = InputUtil.getPhone("Enter Phone (10 digits)");
@@ -107,8 +97,8 @@ public class AgentService {
             }
 
             // The schema requires a password column
-            String password = InputUtil.getMaskedInput("Enter Password (or press Enter for default 'agent123'): ");
-            if (password.isEmpty()) password = "agent123";
+            String password = InputUtil.getMaskedInput("Enter Password (or press Enter for default 'Agent@123'): ");
+            if (password.isEmpty()) password = "Agent@123";
 
             System.out.println();
             if (!InputUtil.confirm("Are you sure you want to add " + name + " as a new agent?")) {
@@ -118,16 +108,15 @@ public class AgentService {
             }
 
             // Specify exact columns to fix the column count mismatch error
-            String query = "INSERT INTO agent (agent_id, name, phone, email, experience_year, agency_id, password) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            String query = "INSERT INTO agent (name, phone, email, experience_year, agency_id, password_hash) VALUES (?, ?, ?, ?, ?, ?)";
 
             PreparedStatement ps = conn.prepareStatement(query);
-            ps.setInt(1, id);
-            ps.setString(2, name);
-            ps.setString(3, phone);
-            ps.setString(4, email);
-            ps.setInt(5, exp);
-            ps.setInt(6, agencyId);
-            ps.setString(7, password);
+            ps.setString(1, name);
+            ps.setString(2, phone);
+            ps.setString(3, email);
+            ps.setInt(4, exp);
+            ps.setInt(5, agencyId);
+            ps.setString(6, password);
 
             ps.executeUpdate();
             System.out.println("✅ Agent added successfully");
