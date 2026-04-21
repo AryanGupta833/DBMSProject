@@ -3,9 +3,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class DBConnection {
-    static final String url="jdbc:mysql://localhost:3306/project8";
+    static final String url="jdbc:mysql://localhost:3307/project8";
     static final String user="root";
-    static final String password="Fdbce@28243";
+    static final String password="Greninja624@";
 
     public static Connection getConnection() throws Exception {
         Class.forName("com.mysql.cj.jdbc.Driver");
