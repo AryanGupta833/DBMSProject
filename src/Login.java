@@ -38,6 +38,10 @@ public class Login {
 
             System.out.print(Color.CYAN + "  Username : " + Color.RESET);
             String username = InputUtil.sc.nextLine().trim();
+            if("about".equals(username)){
+                ContributionUtil.showMenu();
+                continue;
+            }
 
             String password = InputUtil.getMaskedInput("  Password : ");
 
@@ -64,6 +68,7 @@ public class Login {
                 case "ADMIN"  -> AdministratorCLI.start();
                 case "AGENCY" -> OfficeMenu.start();
                 case "AGENT"  -> AgentMenu.start();
+
             }
 
             // After start() returns the user logged out — loop back to login
