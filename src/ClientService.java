@@ -77,10 +77,10 @@ public class ClientService {
         try {
             Connection conn = DBConnection.getConnection();
 
-            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM client");
+            ResultSet rs = conn.createStatement().executeQuery("SELECT * FROM client JOIN client_role on client.client_id = client_role.client_id");
 
             List<String> headers = Arrays.asList(
-                    "ID", "Name", "Phone", "Email", "Address"
+                    "ID", "Name", "Phone", "Email", "Address" , "Role"
             );
 
             List<List<String>> rows = new ArrayList<>();
@@ -91,7 +91,8 @@ public class ClientService {
                         rs.getString("client_name"),
                         rs.getString("client_phone"),
                         rs.getString("client_email"),
-                        rs.getString("client_address")
+                        rs.getString("client_address"),
+                        rs.getString("role")
                 ));
             }
 
