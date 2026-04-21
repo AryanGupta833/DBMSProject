@@ -1465,11 +1465,11 @@ public class AgentService {
 
             // Show clients already assigned to this agent (clients who own properties managed by this agent)
             String clientQuery = """
-                SELECT DISTINCT c.client_id, c.client_name, c.client_phone 
-                FROM client c
-                JOIN property p ON c.client_id = p.owner_id
-                WHERE p.agent_id = ?
-            """;
+    SELECT DISTINCT c.client_id, c.client_name, c.client_phone
+    FROM client c
+    LEFT JOIN property p ON c.client_id = p.owner_id
+    WHERE p.agent_id = ? OR p.property_id IS NULL
+""";
 
             PreparedStatement showClients = conn.prepareStatement(clientQuery);
             showClients.setInt(1, agentId);
@@ -1499,18 +1499,18 @@ public class AgentService {
             int clientId = InputUtil.getPositiveInt("Enter Client ID");
 
             // Verify the entered Client ID actually belongs to this agent
-            PreparedStatement checkProp = conn.prepareStatement(
-                    "SELECT 1 FROM property WHERE owner_id = ? AND agent_id = ?"
-            );
-            checkProp.setInt(1, clientId);
-            checkProp.setInt(2, agentId);
-            ResultSet rsCheckProp = checkProp.executeQuery();
-
-            if (!rsCheckProp.next()) {
-                System.out.println("❌ Client not assigned to you or invalid ID.");
-                InputUtil.pressEnterToContinue();
-                return;
-            }
+//            PreparedStatement checkProp = conn.prepareStatement(
+//                    "SELECT 1 FROM property WHERE owner_id = ? AND agent_id = ?"
+//            );
+//            checkProp.setInt(1, clientId);
+//            checkProp.setInt(2, agentId);
+//            ResultSet rsCheckProp = checkProp.executeQuery();
+//
+//            if (!rsCheckProp.next()) {
+//                System.out.println("❌ Client not assigned to you or invalid ID.");
+//                InputUtil.pressEnterToContinue();
+//                return;
+//            }
 
             // Loop to ensure correct role input
             String role = "";

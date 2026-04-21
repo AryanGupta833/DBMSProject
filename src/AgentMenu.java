@@ -54,6 +54,7 @@ public class AgentMenu {
                     "Make Property Available",
                     "Assign Role",
 
+
                     // 🔹 Sales (Agent)
                     "Record Sale",
                     "View My Sales",
@@ -82,6 +83,7 @@ public class AgentMenu {
                     "Unsold Properties",
 
                     // 🔹 Exit
+                    "Delete Role",
                     "Back"
             });
 
@@ -164,7 +166,8 @@ public class AgentMenu {
                 case 54 -> SalesService.unsoldProperties();
 
                 // 🔹 Exit
-                case 55 -> { return; }
+                case 55 -> ClientService.removeClientRole();
+                case 56 -> { return; }
 
                 default -> System.out.println("Invalid choice.");
             }
