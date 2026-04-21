@@ -80,6 +80,7 @@ public class OfficeMenu {
                     "Most Expensive Property",
                     "Average Property Price",
                     "Filter by Year Built",
+                    "View Properties by AgentId",
 
                     // 🔹 Exit
                     "Back"
@@ -162,9 +163,10 @@ public class OfficeMenu {
                 case 52 -> PropertyService.mostExpensiveProperty();
                 case 53 -> PropertyService.averagePropertyPrice();
                 case 54 -> PropertyService.propertiesByYear();
+                case 55 -> AgentService.viewAgentProperties();
 
                 // 🔹 Exit
-                case 55 -> {
+                case 56 -> {
                     return;
                 }
 

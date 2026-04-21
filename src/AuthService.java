@@ -30,7 +30,7 @@ public class AuthService {
             PreparedStatement ps2 = conn.prepareStatement(
                     "SELECT agency_id, agency_name " +
                             "FROM enterprise " +
-                            "WHERE agency_name = ? AND password_hash = ?"
+                            "WHERE agency_name = ? AND agency_password = ?"
             );
             ps2.setString(1, username);
             ps2.setString(2, password);
@@ -50,7 +50,7 @@ public class AuthService {
             PreparedStatement ps3 = conn.prepareStatement(
                     "SELECT agent_id, agency_id, name " +
                             "FROM agent " +
-                            "WHERE name = ? AND password_hash = ?"
+                            "WHERE name = ? AND password = ?"
             );
             ps3.setString(1, username);
             ps3.setString(2, password);
